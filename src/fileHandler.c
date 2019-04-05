@@ -82,10 +82,10 @@ svgObject* processaComandoGEO(char* comando, treeNode* raiz, int* idnegativo){
 
     if(strcmp(tipo, "t") == 0 ){
         double x = -1, y = -1;
-        char buffer[strlen((comando))];
+        char buffer[safeStrlen((comando))];
         sscanf(comando, "%*s %lf %lf %[^\n]s", &x, &y, buffer);
         
-        char* texto = malloc(sizeof(char)*(strlen(buffer)+1));
+        char* texto = malloc(sizeof(char)*(safeStrlen(buffer)+1));
         sprintf(texto, "%s", buffer);
         Text* t = criarTexto(x,y, texto);
         svgObject* obj = criarSVGObject(TEXT, *idnegativo, t, NULL, NULL, NULL);
@@ -102,7 +102,7 @@ void processaComandoQRY(char* comando, treeNode* raiz, FILE *svgFile, FILE *resp
     char tipo[10];
     sscanf(comando, "%s", tipo);
 
-    if(strlen(comando)<2 || comando[0] == '\0' || strlen(comando)<2 || tipo[0] == '\0'){
+    if(safeStrlen(comando)<2 || comando[0] == '\0' || safeStrlen(comando)<2 || tipo[0] == '\0'){
         reportError(__func__, "Erro no comando/string recebida");
         return;
     }
@@ -247,8 +247,8 @@ void processaComandoQRY(char* comando, treeNode* raiz, FILE *svgFile, FILE *resp
 
         char* textdist = malloc(sizeof(char)*30);
         sprintf(textdist, "%lf", dist);
-        double dp1 = fabs((p1->x - p2->x)) /2;
-        double dp2 = fabs((p1->y - p2->y)) /2;
+        double dp1 = ((p2->x - p1->x)) /2;
+        double dp2 = ((p2->y - p1->y)) /2;
 
         Text *tt = criarTexto(p1->x + dp1, p1->y + dp2, textdist);
 

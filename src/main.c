@@ -18,23 +18,24 @@ int main(int argc, char *argv[]){
     char *nomeEntrada = obterNome(arquivoEntrada), *nomeConsulta = obterNome(arquivoConsulta);
     printf("\nNome de entrada: %s\nNome de consulta: %s\n", nomeEntrada, nomeConsulta);
 
-    char* fullpathGEO = malloc((strlen(diretorioEntrada)+strlen(arquivoEntrada)+10)*sizeof(char));
-    sprintf(fullpathGEO,"%s%s", diretorioEntrada, arquivoEntrada);
+    char* fullpathGEO = malloc((safeStrlen(diretorioEntrada)+safeStrlen(arquivoEntrada)+10)*sizeof(char));
+    sprintf(fullpathGEO,"%s%s", nullToSpace(diretorioEntrada), nullToSpace(arquivoEntrada));
 
-    char* fullpathSVG = malloc((strlen(diretorioSaida)+strlen(nomeEntrada)+10)*sizeof(char));
-    sprintf(fullpathSVG,"%s%s.svg", diretorioSaida, nomeEntrada);
+    char* fullpathSVG = malloc((safeStrlen(diretorioSaida)+safeStrlen(nomeEntrada)+10)*sizeof(char));
+    sprintf(fullpathSVG,"%s%s.svg", nullToSpace(diretorioSaida), nullToSpace(nomeEntrada));
 
-    char* fullpathQRY = malloc((strlen(diretorioEntrada)+strlen(arquivoConsulta)+10)*sizeof(char));
-    sprintf(fullpathQRY,"%s%s", diretorioEntrada, arquivoConsulta);
+    char* fullpathQRY = malloc((safeStrlen(diretorioEntrada)+safeStrlen(arquivoConsulta)+10)*sizeof(char));
+    sprintf(fullpathQRY,"%s%s", nullToSpace(diretorioEntrada), nullToSpace(arquivoConsulta));
 
-    char* fullpathSVG2 = malloc((strlen(diretorioSaida)+strlen(nomeEntrada)+10+strlen(nomeConsulta))*sizeof(char));
-    sprintf(fullpathSVG2,"%s%s-%s.svg", diretorioSaida, nomeEntrada, nomeConsulta);
+    char* fullpathSVG2 = malloc((safeStrlen(diretorioSaida)+safeStrlen(nomeEntrada)+10+safeStrlen(nomeConsulta))*sizeof(char));
+    sprintf(fullpathSVG2,"%s%s-%s.svg", nullToSpace(diretorioSaida), nullToSpace(nomeEntrada), nullToSpace(nomeConsulta));
 
-    char* fullpathTXT = malloc((strlen(diretorioSaida)+strlen(nomeEntrada)+10+strlen(nomeConsulta))*sizeof(char));
-    sprintf(fullpathTXT,"%s%s-%s.txt", diretorioSaida, nomeEntrada, nomeConsulta);
+    char* fullpathTXT = malloc((safeStrlen(diretorioSaida)+safeStrlen(nomeEntrada)+10+safeStrlen(nomeConsulta))*sizeof(char));
+    sprintf(fullpathTXT,"%s%s-%s.txt", nullToSpace(diretorioSaida), nullToSpace(nomeEntrada), nullToSpace(nomeConsulta));
 
-    char* fullpathBB = malloc((strlen(diretorioSaida)+strlen(nomeConsulta)+10+strlen(nomeEntrada))*sizeof(char));
-    sprintf(fullpathBB,"%s%s-%s", diretorioSaida, nomeEntrada, nomeConsulta);
+    char* fullpathBB = malloc((safeStrlen(diretorioSaida)+safeStrlen(nomeConsulta)+10+safeStrlen(nomeEntrada))*sizeof(char));
+    sprintf(fullpathBB,"%s%s-%s", nullToSpace(diretorioSaida), nullToSpace(nomeEntrada), nullToSpace(nomeConsulta));
+
 
     FILE* f = abrirArquivo(fullpathGEO, READONLY);
     handleGeo(f, raiz, fullpathSVG);
@@ -87,6 +88,22 @@ void defaultInit(){
     #elif PLATAFORM == PLATAFORM_MAC
         printf("Inicializando código em sistema Mac\n Não testado\n\n");
     #endif   
+}
+
+int safeStrlen(char* str){
+    if(str != NULL){
+        return strlen(str);
+    }else{
+        return 0;
+    }
+}
+
+char* nullToSpace(char* ss){
+    if(ss == NULL){
+        return "";
+    }else{
+        return ss;
+    }
 }
 
 

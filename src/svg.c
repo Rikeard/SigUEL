@@ -10,7 +10,7 @@ SVG* inicializarContainerSVG(int width, int height){
     //Inicializacao do header e ending
     char *initialize = calloc(1000, sizeof(char));
     sprintf(initialize, "<svg width=\"%d\" height=\"%d\">", width, height);
-    objeto->header = calloc(strlen(initialize)+1, sizeof(char));
+    objeto->header = calloc(safeStrlen(initialize)+1, sizeof(char));
     strcpy(objeto->header, initialize);
 
     objeto->ending = calloc(8, sizeof(char));    
@@ -31,14 +31,14 @@ char* exportarSVG(SVG *objeto){
     int tamanho = 0;
 
     if(objeto->header != NULL && objeto->ending != NULL){
-        tamanho += strlen(objeto->header);
-        tamanho += strlen(objeto->ending);
+        tamanho += safeStrlen(objeto->header);
+        tamanho += safeStrlen(objeto->ending);
     }else{
         reportError(__func__, "header ou ending tem valor nulo");
     }
 
     if(objeto->data != NULL){
-        tamanho += strlen(objeto->data);
+        tamanho += safeStrlen(objeto->data);
     }else{
         reportError(__func__, "char* data é nulo");
     }
@@ -59,7 +59,7 @@ char* exportarSVG(SVG *objeto){
     
     //Teste unitário 
     // 30 é o valor de um header + ending com data vazio
-    if(strlen(saida) >= 30){
+    if(safeStrlen(saida) >= 30){
         reportSucess(__func__);
     }
 
@@ -75,22 +75,22 @@ svgObject* criarSVGObject(geometryType tipo, int id, void* elemento, char* corBo
     char *cb = NULL, *cp = NULL, *st = NULL;
 
     if(corBorda != NULL){
-        if(strlen(corBorda) > 1){
-            cb = malloc((strlen(corBorda)+1)*sizeof(char));
+        if(safeStrlen(corBorda) > 1){
+            cb = malloc((safeStrlen(corBorda)+1)*sizeof(char));
             sprintf(cb, "%s", corBorda);
         }
     }
 
     if(CorPreenchimento != NULL ){
-        if(strlen(CorPreenchimento) > 1){
-            cp = malloc((strlen(CorPreenchimento)+1)*sizeof(char));
+        if(safeStrlen(CorPreenchimento) > 1){
+            cp = malloc((safeStrlen(CorPreenchimento)+1)*sizeof(char));
             sprintf(cp, "%s", CorPreenchimento);
         }
     }
 
     if(style != NULL){
-        if(strlen(style) > 1){
-            st = malloc((strlen(style)+1)*sizeof(char));
+        if(safeStrlen(style) > 1){
+            st = malloc((safeStrlen(style)+1)*sizeof(char));
             sprintf(st, "%s", style);
         }
     }

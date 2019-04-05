@@ -18,6 +18,8 @@
 void reportError(const char* funcao, char* error);
 void reportSucess(const char* funcao);
 void defaultInit();
+int safeStrlen(char* str);
+char* nullToSpace(char* ss);
 
 typedef struct treeNode treeNode;
 typedef struct Rectangle Rectangle;

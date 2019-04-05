@@ -58,7 +58,7 @@ char* toString(svgObject* objeto){
             reportError(__func__, "Elemento com tipo não determinado");
             break;
     }
-    char *resp = malloc(sizeof(char)*(strlen(buffer)+1));
+    char *resp = malloc(sizeof(char)*(safeStrlen(buffer)+1));
     sprintf(resp, "%s", buffer);
     return resp;
 }
