@@ -87,5 +87,36 @@ void argumentoInicial(int argc, char *argv[], char** diretorioEntrada, char **di
 
     }
 
-    printf("Diretório de entrada: %s\nArquivo de entrada: %s\nArquivo de consulta: %s\nDiretório de saída: %s\n", *diretorioEntrada, *arquivoEntrada, *arquivoConsulta, *diretorioSaida);
+    printf("Diretório de entrada (-e): %s\nArquivo de entrada (-f): %s\nArquivo de consulta (-q): %s\nDiretório de saída (-o): %s\n", *diretorioEntrada, *arquivoEntrada, *arquivoConsulta, *diretorioSaida);
+}
+
+void montagemDePathGEO(char* diretorioEntrada, char* diretorioSaida, char* arquivoEntrada, char *nomeEntrada, char** fullpathGEO, char **fullpathSVG){
+        printf("    Processamento de GEO:\n");
+
+        *fullpathGEO = malloc((safeStrlen(diretorioEntrada)+safeStrlen(arquivoEntrada)+10)*sizeof(char));
+        sprintf(*fullpathGEO,"%s%s", nullToSpace(diretorioEntrada), nullToSpace(arquivoEntrada));
+        printf("        Caminho de arquivo .geo: %s\n", *fullpathGEO);
+
+        *fullpathSVG = malloc((safeStrlen(diretorioSaida)+safeStrlen(nomeEntrada)+10)*sizeof(char));
+        sprintf(*fullpathSVG,"%s%s.svg", nullToSpace(diretorioSaida), nullToSpace(nomeEntrada));
+        printf("        Caminho de arquivo .svg: %s\n", *fullpathSVG);    
+}
+
+void montagemDePathQRY(char* diretorioEntrada, char* diretorioSaida, char* arquivoConsulta, char* nomeEntrada, char* nomeConsulta, char** fullpathQRY, char** fullpathSVG2, char** fullpathTXT, char** fullpathBB){
+     printf("\n    Processamento QRY:\n");
+
+        *fullpathQRY = malloc((safeStrlen(diretorioEntrada)+safeStrlen(arquivoConsulta)+10)*sizeof(char));
+        sprintf(*fullpathQRY,"%s%s", nullToSpace(diretorioEntrada), nullToSpace(arquivoConsulta));
+        printf("        Caminho de arquivo .qry: %s\n", *fullpathQRY);
+
+        *fullpathSVG2 = malloc((safeStrlen(diretorioSaida)+safeStrlen(nomeEntrada)+10+safeStrlen(nomeConsulta))*sizeof(char));
+        sprintf(*fullpathSVG2,"%s%s-%s.svg", nullToSpace(diretorioSaida), nullToSpace(nomeEntrada), nullToSpace(nomeConsulta));
+        printf("        Caminho de arquivo .svg - qry: %s\n", *fullpathSVG2);
+
+        *fullpathTXT = malloc((safeStrlen(diretorioSaida)+safeStrlen(nomeEntrada)+10+safeStrlen(nomeConsulta))*sizeof(char));
+        sprintf(*fullpathTXT,"%s%s-%s.txt", nullToSpace(diretorioSaida), nullToSpace(nomeEntrada), nullToSpace(nomeConsulta));
+        printf("        Caminho de arquivo .txt - qry: %s\n", *fullpathTXT);
+
+        *fullpathBB = malloc((safeStrlen(diretorioSaida)+safeStrlen(nomeConsulta)+10+safeStrlen(nomeEntrada))*sizeof(char));
+        sprintf(*fullpathBB,"%s%s-%s", nullToSpace(diretorioSaida), nullToSpace(nomeEntrada), nullToSpace(nomeConsulta));
 }

@@ -179,6 +179,7 @@ void processaComandoQRY(char* comando, treeNode* raiz, FILE *svgFile, FILE *resp
 
             liberarSVGobject(lnrt);
             liberarSVGobject(respt);
+            liberarPoint(cord);
 
         }else if(teste->tipo == RECTANGLE){
             Rectangle *rt1 = teste->elemento;
@@ -206,6 +207,7 @@ void processaComandoQRY(char* comando, treeNode* raiz, FILE *svgFile, FILE *resp
             liberarSVGobject(lnrt);
             liberarSVGobject(respt);
             liberarPoint(centroDeMassa);
+            liberarPoint(cord);
 
             return;
 
@@ -214,7 +216,6 @@ void processaComandoQRY(char* comando, treeNode* raiz, FILE *svgFile, FILE *resp
             reportError(__func__, "Caso de teste `i?`: Tipo não compatível");
         }
 
-        liberarPoint(cord);
 
 
     }
@@ -275,8 +276,9 @@ void processaComandoQRY(char* comando, treeNode* raiz, FILE *svgFile, FILE *resp
         sscanf(comando, "%*s %s %s", sufixo, cor);
 
 
-        char stpath[64];
+        char stpath[128];
         sprintf(stpath, "%s-%s.svg", DirComNomeBase, sufixo);
+        printf("Caminho de arquivo .svg [bb]: %s\n", stpath);
 
         iniciarSVGFILE(stpath);
         FILE *sfxsvg = abrirArquivo(stpath, APPEND);
