@@ -2,67 +2,83 @@
 #define GEO_H
 
 #include "main.h"
-
-typedef enum geometryType{
-    CIRCLE, RECTANGLE, TEXT, LINE, ELLIPSE
-} geometryType;
-
-//Elementos de gerais de cada objeto do SVG
-typedef struct svgObject{
-    geometryType tipo;
-    int id;
-    void *elemento; //Usar o geometryType pra saber qual tipo instanciar
-    char* corBorda;
-    char* corPreenchimento;
-    char* style;
-}svgObject;
-
-typedef struct Point{
-    double x, y;
-} Point;
-
-typedef struct Line{
-    Point *coordenada1, *coordenada2;
-} Line;
-
-typedef struct Ellipse{
-    Point* coordenada;
-    double raioX, raioY;
-} Ellipse;
-
-typedef struct Text{
-    Point* coordenada;
-    char* texto;
-}Text;
-
-//Elemento de lógica
-typedef struct Rectangle{
-    Point* coordenada;
-    double height, width;
-}Rectangle;
-
-typedef struct Circle{
-    Point* coordenada;
-    double raio;
-}Circle;
+#include "../Elementos/header/commonSVG.h"
+#include "../Elementos/header/svgObject.h"
+#include "../Elementos/SVG/header/Rectangle.h"
+#include "../Elementos/SVG/header/Point.h"
+#include "../Elementos/SVG/header/Circle.h"
+#include "../Elementos/SVG/header/Ellipse.h"
 
 
+/*
+    Molda uma elipse em volta do retângulo
+*/
+Ellipse moldarRetangulo(Rectangle rec);
+
+/*
+    Obtem o centro de massa de um Circulo ou Retangulo
+*/
+Point obterCentroDeMassa(geometryType tipo, void* obj);
+
+/*
+    Distância euclidiana entre 2 pontos √((x1-x2)² + (y1-y2)²)
+*/
+double distanciaEntrePontos(Point p1, Point p2);
+
+/*
+    Bonding Box - Circle
+    Retorna um Retângulo que envolve um círculo
+*/
+Rectangle bbCircle(Circle c1);
+
+/*
+    Chamada padrão do Bonding Box, automaticamente chama os metódos de acordo com os tipos de objeto
+*/
+Rectangle envolveObjeto(svgObject obj1, svgObject obj2);
+
+/*
+    Retorna um retângulo que é um bonding box entre outros dois retângulos
+*/
+Rectangle bbRectangle(Rectangle rect1, Rectangle rect2);
+
+/*
+    Verifica a colisão entre 2 retângulos
+*/
+bool colideRetanguloRetangulo(Rectangle rect1, Rectangle rect2);
+
+/*
+    Verifica a colisão entre um retângulo e um círculo
+*/
+bool colideCirculoRetangulo(Rectangle rect, Circle circle);
+
+/*
+    Verifica a colisão entre 2 círculos
+*/
+bool colideCirculoCirculo(Circle cir1, Circle cir2);
+
+/*
+    Função geral para verificação de colisão
+*/
+bool colide(svgObject objeto1, svgObject objeto2);
+
+/*
+    Retorna o valor máximo/mínimo possível dentro do intervalo
+*/
 double clamp(double valor, double intervalo1, double intervalo2);
-void* criarRetangulo(double x, double y, double width, double height);
-bool colide(svgObject* objeto1, svgObject* objeto2);
-void* criarCirculo(double x, double y, double raio);
-bool colideRetanguloRetangulo(Rectangle* rect1, Rectangle* rect2);
-Ellipse* moldarRetangulo(svgObject *rec);
-double distanciaEntrePontos(Point* p1, Point* p2);
+
+/*
+    Verifica se o valor está dentro do intervalo, possui a opção de incluir a borda ou não
+*/
 bool contidoNoIntervalo(double valor, double intervalo1, double intervalo2, bool incluirBorda);
-Point* obterCentroDeMassa(svgObject *obj);
-void *criarElipse(double x, double y, double raioX, double raioY);
-Rectangle* boundingBoxCIRCLE(Circle *c1);
-Rectangle* boundingBoxRECTANGLE(Rectangle *rect1, Rectangle *rect2);
-void* criarTexto(double x, double y, char* texto);
-Rectangle* envolveObjeto(svgObject *obj1, svgObject *obj2);
-Point* criarPonto(double x, double y);
-void *criarLinha(double x1, double y1, double x2, double y2);
+/*
+    Distância entre a borda mais distante do retângulo e o ponto
+*/
+double maiorDistancia(Rectangle r, Point p, bool l1); 
+
+bool isContido(svgObject contido, Rectangle box);
+
+
+
 
 
 

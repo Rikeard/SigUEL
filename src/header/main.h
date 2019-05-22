@@ -15,18 +15,5 @@
     #define PLATFORM PLATFORM_UNIX
 #endif
 
-void reportError(const char* funcao, char* error);
-void reportSucess(const char* funcao);
-void defaultInit();
-int safeStrlen(char* str);
-char* nullToSpace(char* ss);
-
-typedef struct treeNode treeNode;
-typedef struct Rectangle Rectangle;
-typedef struct Circle Circle;
-typedef struct svgObject svgObject;
-typedef struct SVG SVG;
-typedef enum geometryType geometryType;
-
 
 #endif

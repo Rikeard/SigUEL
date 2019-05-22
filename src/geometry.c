@@ -1,59 +1,50 @@
 #include "header/geometry.h"
-#include "header/free.h"
 
-void* criarTexto(double x, double y, char* texto){
-    Text *t= malloc(sizeof(Text));
+/*
+    Molda uma elipse em volta do retângulo
+*/
+Ellipse moldarRetangulo(Rectangle rec){
+    //Obtem o centro de massa
+    Point centro = obterCentroDeMassa(RECTANGLE, rec);
 
-    t->coordenada = criarPonto(x,y);
+    double centroX = Point_getX(centro);
+    double centroY = Point_getY(centro);
+    double largura = Rectangle_getLargura(rec);
+    double altura = Rectangle_getAltura(rec);
+
+    //Cria uma ellipse no centro do retângulo com os raios com metade da altura/largura
+    Ellipse el = Ellipse_new(centroX, centroY, largura/2, altura/2);
     
-    if(texto == NULL){
-        reportError(__func__, "Texto é nulo");
-        free(t);
-        return NULL;
-    }else{
-        t->texto = texto;
-    }
-    return t;
-}
-
-void *criarLinha(double x1, double y1, double x2, double y2){
-    Line *l = malloc(sizeof(Line));
-    l->coordenada1 = criarPonto(x1, y1);
-    l->coordenada2 = criarPonto(x2, y2);
-    return l;
-}
-
-Ellipse* moldarRetangulo(svgObject *rec){
-    Point *x = obterCentroDeMassa(rec);
-    Rectangle *rect1 = rec->elemento;
-    Ellipse *el =  criarElipse(x->x, x->y, rect1->width/2, rect1->height/2);
-    liberarPoint(x);
+    Point_liberar(centro);
     return el;
 }
 
-void *criarElipse(double x, double y, double raioX, double raioY){
-    Ellipse *el = malloc(sizeof(Ellipse));
-    
-    el->raioX = raioX;
-    el->raioY = raioY;
-    el->coordenada = criarPonto(x,y);
-    return el;
-}
-
-Point* obterCentroDeMassa(svgObject *obj){
-    switch(obj->tipo){
-
+/*
+    Obtem o centro de massa de um Circulo ou Retangulo
+*/
+Point obterCentroDeMassa(geometryType tipo, void* obj){
+    switch(tipo){
         case CIRCLE:
             {
-                Circle *c1 = obj->elemento;
-                return criarPonto(c1->coordenada->x, c1->coordenada->y);
+                Circle c1 = obj;
+                Point cord = Circle_getCoordenada(c1);
+                double x = Point_getX(cord);
+                double y = Point_getY(cord);
+
+                return Point_new(x,y);
                 break;
             }
         
         case RECTANGLE:
             {
-                Rectangle *r1 = obj->elemento;
-                Point *p1 = criarPonto(r1->coordenada->x + (r1->width/2), r1->coordenada->y + (r1->height/2));
+                Rectangle r1 = obj;
+                Point cord = Rectangle_getCoordenada(r1);
+                double x = Point_getX(cord);
+                double y = Point_getY(cord);
+                double largura = Rectangle_getLargura(r1);
+                double altura = Rectangle_getAltura(r1);
+
+                Point p1 = Point_new(x+ (largura/2), y + (altura/2));
                 return p1;
                 break;
             }
@@ -66,158 +57,296 @@ Point* obterCentroDeMassa(svgObject *obj){
     return NULL;
 }
 
-Point* criarPonto(double x, double y){
-    Point *p = malloc(sizeof(Point));
-    p->x = x;
-    p->y = y;
-    return p;
+/*
+    Distância euclidiana entre 2 pontos √((x1-x2)² + (y1-y2)²)
+*/
+double distanciaEntrePontos(Point p1, Point p2){
+
+    double x1 = Point_getX(p1);
+    double y1 = Point_getY(p1);
+    double x2 = Point_getX(p2);
+    double y2 = Point_getY(p2);
+
+    return sqrt(pow(x1-x2, 2) + pow(y1-y2, 2));
 }
 
-void* criarRetangulo(double x, double y, double width, double height){
-    Rectangle *rect = malloc(sizeof(Rectangle));
-
-    rect->coordenada = criarPonto(x,y);
-    rect->width = width;
-    rect->height = height;
-
-    return rect;
-}
-
-void* criarCirculo(double x, double y, double raio){
-    Circle *circl = malloc(sizeof(Circle));
-
-    circl->coordenada = criarPonto(x,y);
-    circl->raio = raio;
-    return circl;
-}
-
-double distanciaEntrePontos(Point* p1, Point* p2){
-    return sqrt(pow(p1->x - p2->x, 2) + pow(p1->y - p2->y, 2));
-}
-
-
-Rectangle* boundingBoxCIRCLE(Circle *c1){
+/*
+    Bonding Box - Circle
+    Retorna um Retângulo que envolve um círculo
+*/
+Rectangle bbCircle(Circle c1){
     double x = -1, y = -1, w = -1, h = -1;
 
-    x = c1->coordenada->x - c1->raio;
-    y = c1->coordenada->y - c1->raio;
-    w = c1->raio*2;
-    h = c1->raio*2;
+    Point cord = Circle_getCoordenada(c1);
+    double cx = Point_getX(cord);
+    double cy = Point_getY(cord);
+    double raio = Circle_getRaio(c1);
+
+    x = cx - raio;
+    y = cy - raio;
+    w = raio * 2;
+    h = raio * 2;
 
 
     if(x == -1 || y == -1 || w == -1 || h == -1)
         reportError(__func__, "Valor do círculo inválido");
 
-    Rectangle *a = criarRetangulo(x,y,w,h);
+    Rectangle a = Rectangle_new(x,y,h,w);
     return a;
 
 }
 
-Rectangle* envolveObjeto(svgObject *obj1, svgObject *obj2){
-    Rectangle *r1, *r2;
+/*
+    Chamada padrão do Bonding Box, automaticamente chama os metódos de acordo com os tipos de objeto
+*/
+Rectangle envolveObjeto(svgObject obj1, svgObject obj2){
+    Rectangle r1, r2;
     bool createdR1 = false, createdR2 = false;
 
-    if(obj1->tipo == CIRCLE){
-        r1 = boundingBoxCIRCLE(obj1->elemento);
+    //Cria bondings box entre Retangulos e Circulos. No caso de circulos, ele os transforma em retângulos primeiro
+
+    void* elemento1 = svgObject_getElemento(obj1);
+    void* elemento2 = svgObject_getElemento(obj2);
+
+    if(svgObject_getTipo(obj1) == CIRCLE){
+        r1 = bbCircle(elemento1);
         createdR1 = true;
     }else{
-        r1 = obj1->elemento;
+        r1 = elemento1;
     }
 
-    if(obj2->tipo == CIRCLE){
-        r2 = boundingBoxCIRCLE(obj2->elemento);
+    if(svgObject_getTipo(obj2) == CIRCLE){
+        r2 = bbCircle(elemento2);
         createdR2 = true;
     }else{
-        r2 = obj2->elemento;
+        r2 = elemento2;
     }
 
-    Rectangle* resp =  boundingBoxRECTANGLE(r1, r2);
+    Rectangle resp = bbRectangle(r1, r2);
 
     if(createdR1){
-        liberarRectangle(r1);
+        Rectangle_liberar(r1);
     }
 
     if(createdR2){
-        liberarRectangle(r2);
+        Rectangle_liberar(r2);
     }
-
 
     return resp;
 
 
 }
 
-Rectangle* boundingBoxRECTANGLE(Rectangle *rect1, Rectangle *rect2){
-    double maxX = fmax(rect1->coordenada->x, fmax(rect2->coordenada->x, fmax(rect1->coordenada->x + rect1->width, rect2->coordenada->x + rect2->width)));
-    double maxY = fmax(rect1->coordenada->y, fmax(rect2->coordenada->y, fmax(rect1->coordenada->y + rect1->height, rect2->coordenada->y + rect2->height)));
-    double minX = fmin(rect1->coordenada->x, fmin(rect2->coordenada->x, fmin(rect1->coordenada->x + rect1->width, rect2->coordenada->x + rect2->width)));
-    double minY = fmin(rect1->coordenada->y, fmin(rect2->coordenada->y, fmin(rect1->coordenada->y + rect1->height, rect2->coordenada->y + rect2->height)));
+/*
+    Retorna um retângulo que é um bonding box entre outros dois retângulos
+*/
+Rectangle bbRectangle(Rectangle rect1, Rectangle rect2){
+    Point cord1 = Rectangle_getCoordenada(rect1);
+    Point cord2 = Rectangle_getCoordenada(rect2);
 
-    return criarRetangulo(minX, minY, maxX-minX, maxY-minY);
+    double x1 = Point_getX(cord1);
+    double y1 = Point_getY(cord1);
+    double l1 = Rectangle_getLargura(rect1);
+    double a1 = Rectangle_getAltura(rect1);
+
+    double x2 = Point_getX(cord2);
+    double y2 = Point_getY(cord2);
+    double l2 = Rectangle_getLargura(rect2);
+    double a2 = Rectangle_getAltura(rect2);
+
+    double maxX = fmax(x1, fmax(x2, fmax(x1 + l1, x2 + l2)));
+    double maxY = fmax(y1, fmax(y2, fmax(y1 + a1, y2 + a2)));
+    double minX = fmin(x1, fmin(x2, fmin(x1 + l1, x2 + l2)));
+    double minY = fmin(y1, fmin(y2, fmin(y1 + a1, y2 + a2)));
+
+
+    return Rectangle_new(minX, minY, maxY - minY, maxX - minX);
 }
 
-bool colideRetanguloRetangulo(Rectangle* rect1, Rectangle* rect2){
+/*
+    Verifica a colisão entre 2 retângulos
+*/
+bool colideRetanguloRetangulo(Rectangle rect1, Rectangle rect2){
     bool colide = false;
     
-
     bool colideX = false;
     bool colideY = false; 
+
+    Point cord1 = Rectangle_getCoordenada(rect1);
+    Point cord2 = Rectangle_getCoordenada(rect2);
+
+    double x1 = Point_getX(cord1);
+    double y1 = Point_getY(cord1);
+    double l1 = Rectangle_getLargura(rect1);
+    double a1 = Rectangle_getAltura(rect1);
+
+    double x2 = Point_getX(cord2);
+    double y2 = Point_getY(cord2);
+    double l2 = Rectangle_getLargura(rect2);
+    double a2 = Rectangle_getAltura(rect2);
+
     //Verificar se o X e o X + width do rect1 está entre o X e o X+width do rect2
-    if(contidoNoIntervalo(rect1->coordenada->x, rect2->coordenada->x, rect2->coordenada->x + rect2->width, true) ||
-       contidoNoIntervalo(rect1->coordenada->x + rect1->width, rect2->coordenada->x, rect2->coordenada->x + rect2->width, true)){
+    if(contidoNoIntervalo(x1, x2, x2 + l2, true) ||
+       contidoNoIntervalo(x1 + l1, x2, x2 + l2, true)){
            colideX = true;
     }
 
-    if(contidoNoIntervalo(rect1->coordenada->y, rect2->coordenada->y, rect2->coordenada->y + rect2->height, true) ||
-       contidoNoIntervalo(rect1->coordenada->y + rect1->height, rect2->coordenada->y, rect2->coordenada->y + rect2->height, true)){
+    if(contidoNoIntervalo(y1, y2, y2 + a2, true) ||
+       contidoNoIntervalo(y1 + a1, y2, y2 + a2, true)){
            colideY = true;
     }
          
     return colideX && colideY;
 }
 
-bool colideCirculoRetangulo(Rectangle* rect, Circle* circle){
+/*
+    Verifica a colisão entre um retângulo e um círculo
+*/
+bool colideCirculoRetangulo(Rectangle rect, Circle circle){
+    Point cordCirc = Circle_getCoordenada(circle);
+    Point cordRect = Rectangle_getCoordenada(rect);
 
-    Point *pontoMaisProximo = criarPonto(clamp(circle->coordenada->x, rect->coordenada->x , rect->coordenada->x + rect->width),
-                                         clamp(circle->coordenada->y, rect->coordenada->y, rect->coordenada->y + rect->height));
+    double xc = Point_getX(cordCirc);
+    double yc = Point_getY(cordCirc);
+    double r = Circle_getRaio(circle);
 
-    double dist = distanciaEntrePontos(pontoMaisProximo, circle->coordenada);
+    double xr = Point_getX(cordRect);
+    double yr = Point_getY(cordRect);
+    double l = Rectangle_getLargura(rect);
+    double a = Rectangle_getAltura(rect);
+
+    Point pontoMaisProximo = Point_new(clamp(xc, xr , xr + l),
+                                         clamp(yc, yr, yr + a));
+
+    double dist = distanciaEntrePontos(pontoMaisProximo, cordCirc);
     bool resp = false;
 
-    if(dist <= circle->raio){
+    if(dist <= r){
         resp =  true;
     }
 
-    liberarPoint(pontoMaisProximo);
+    Point_liberar(pontoMaisProximo);
     return resp;
 
 }
 
-bool colideCirculoCirculo(Circle *cir1, Circle *cir2){
+double distanciaL2(Point p1, Point p2){
+    double disX = Point_getX(p1)-Point_getX(p2);
+    double disY = Point_getY(p1)-Point_getY(p2);
 
-    double dist = distanciaEntrePontos(cir1->coordenada, cir2->coordenada);
+    if(disX < 0)
+        disX *= -1;
+    
+    if(disY < 0)
+        disY *= -1;
 
-    if(dist <= cir1->raio + cir2->raio){
+    return disX + disY;
+}
+
+double maiorDistancia(Rectangle r, Point p, bool l1){
+
+    Point rec = Rectangle_getCoordenada(r);
+    double x = Point_getX(rec);
+    double y = Point_getY(rec);
+    double a = Rectangle_getAltura(r);
+    double l = Rectangle_getLargura(r);
+
+    Point bordas[4];
+    bordas[0] = Point_new(x,y);
+    bordas[1] = Point_new(x, y+a);
+    bordas[2] = Point_new(x+l, y);
+    bordas[3] = Point_new(x+l, y+a);
+
+    double maior = 0;
+    for(int i = 0; i < 4; i++){
+        
+        double dd;
+        if(l1)
+            dd = distanciaEntrePontos(bordas[i], p);
+        else 
+            dd = distanciaL2(bordas[i], p);
+
+        if(dd > maior){
+            maior = dd;
+        }
+    }
+
+    return maior;
+
+}
+
+bool isContido(svgObject contido, Rectangle box){
+    Point ret = Rectangle_getCoordenada(box);
+    double rx = Point_getX(ret);
+    double ry = Point_getY(ret);
+    double ra = Rectangle_getAltura(box);
+    double rl = Rectangle_getLargura(box);
+
+    Rectangle bd;
+
+    if(svgObject_getTipo(contido) == CIRCLE){
+        Circle c = svgObject_getElemento(contido);
+        bd = bbCircle(c);
+
+    }else if(svgObject_getTipo(contido) == RECTANGLE){
+        bd = svgObject_getElemento(contido);
+
+    }else{
+        reportError(__func__, "Tipo não encaixado");
+        printf("TIPO:%d\n", svgObject_getTipo(contido));
+    }
+
+    Point ret2 = Rectangle_getCoordenada(bd);
+    double bx = Point_getX(ret2);
+    double by = Point_getY(ret2);
+    double ba = Rectangle_getAltura(bd);
+    double bl = Rectangle_getLargura(bd);
+
+    if(contidoNoIntervalo(bx, rx, rx+rl, true) && contidoNoIntervalo(by, ry, ry+ra, true) &&
+        contidoNoIntervalo(bx+bl, rx, rx+rl, true) && contidoNoIntervalo(by+ba, ry, ry+ra, true)){
+            return true;
+        }else{
+            return false;
+        }
+
+
+
+}
+
+/*
+    Verifica a colisão entre 2 círculos
+*/
+bool colideCirculoCirculo(Circle cir1, Circle cir2){
+
+    double dist = distanciaEntrePontos(Circle_getCoordenada(cir1), Circle_getCoordenada(cir2));
+
+    double r1 = Circle_getRaio(cir1);
+    double r2 = Circle_getRaio(cir2);
+
+    if(dist <= r1+r2){
         return true;
     }else{
         return false;
     }
 }
 
-bool colide(svgObject* objeto1, svgObject* objeto2){
-    switch(objeto1->tipo){
+/*
+    Função geral para verificação de colisão
+*/
+bool colide(svgObject objeto1, svgObject objeto2){
+    switch(svgObject_getTipo(objeto1)){
 
         //Verificação de CIRCULOS com X
         case CIRCLE:
             {
 
-            Circle *c1 = objeto1->elemento;
+            Circle c1 = svgObject_getElemento(objeto1);
 
-            switch(objeto2->tipo){
+            switch(svgObject_getTipo(objeto2)){
                 //Circulo com Circulo;
                 case CIRCLE:
                     {
-                        Circle *c2 = objeto2->elemento;
+                        Circle c2 = svgObject_getElemento(objeto2);
                         return colideCirculoCirculo(c1, c2);
                         break;
                     }
@@ -225,7 +354,7 @@ bool colide(svgObject* objeto1, svgObject* objeto2){
                 //Circulo com Retangulo
                 case RECTANGLE:
                     {
-                        Rectangle *r2 = objeto2->elemento;
+                        Rectangle r2 = svgObject_getElemento(objeto2);
                         return colideCirculoRetangulo(r2, c1);
                         break;
                     }
@@ -246,9 +375,9 @@ bool colide(svgObject* objeto1, svgObject* objeto2){
         case RECTANGLE: 
             {
             
-            Rectangle *r1 = objeto1->elemento;
+            Rectangle r1 = svgObject_getElemento(objeto1);
 
-            switch(objeto2->tipo){
+            switch(svgObject_getTipo(objeto2)){
                 //Retangulo com Circulo --> Caso repetido do primeiro switch: Chama a função de novo com a ordem invertida
                 case CIRCLE:
                     {
@@ -258,7 +387,7 @@ bool colide(svgObject* objeto1, svgObject* objeto2){
                 //Retangulo com Retangulo
                 case RECTANGLE:
                     {
-                        Rectangle *r2 = objeto2->elemento;
+                        Rectangle r2 = svgObject_getElemento(objeto2);
                         return colideRetanguloRetangulo(r1, r2);
                         break;
                     }
@@ -277,6 +406,9 @@ bool colide(svgObject* objeto1, svgObject* objeto2){
 
 }
 
+/*
+    Retorna o valor máximo/mínimo possível dentro do intervalo
+*/
 double clamp(double valor, double intervalo1, double intervalo2){
 
     double menor, maior;
@@ -297,6 +429,9 @@ double clamp(double valor, double intervalo1, double intervalo2){
     }
 }
 
+/* 
+    Verifica se o valor está dentro do intervalo, possui a opção de incluir a borda ou não
+*/
 bool contidoNoIntervalo(double valor, double intervalo1, double intervalo2, bool incluirBorda){
     
     double menor, maior;

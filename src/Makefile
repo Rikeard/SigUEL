@@ -1,9 +1,9 @@
-OBJS = *.c
+OBJS = $(shell find . -name '*.c')
 CC = gcc
-COMPILER_FLAGS = -o -std=c99 -fstack-protector-all
+COMPILER_FLAGS = -std=c99 -fstack-protector-all
 LINKER_FLAGS = -lm
 OBJ_NAME = siguel
 
-all: $(OBJS)
+siguel: $(OBJS)
 	$(CC) $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(OBJ_NAME) 
 

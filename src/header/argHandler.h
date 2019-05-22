@@ -2,6 +2,7 @@
 #define ARGHANDLER_H
 
 #include "main.h"
+#include "../Commons/header/cmm.h"
 
 char* obterNome(char* arquivoEntrada);
 void argumentoInicial(int argc, char *argv[], char** diretorioEntrada, char **diretorioSaida, char **arquivoEntrada, char **arquivoConsulta);
