@@ -244,7 +244,6 @@ double distanciaL2(Point p1, Point p2){
 }
 
 double maiorDistancia(Rectangle r, Point p, bool l1){
-
     Point rec = Rectangle_getCoordenada(r);
     double x = Point_getX(rec);
     double y = Point_getY(rec);
@@ -261,11 +260,11 @@ double maiorDistancia(Rectangle r, Point p, bool l1){
     for(int i = 0; i < 4; i++){
         
         double dd;
-        if(l1)
+        if(!l1){
             dd = distanciaEntrePontos(bordas[i], p);
-        else 
+        }else{ 
             dd = distanciaL2(bordas[i], p);
-
+        }
         if(dd > maior){
             maior = dd;
         }

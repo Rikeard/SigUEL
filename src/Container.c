@@ -49,7 +49,7 @@ void runTime_setStyle(Runtime t, Listas type, char* fill, char* borda, char* sty
             break;
         default:
             reportError(__func__, "Unhandled type");
-            return NULL;
+            return;
             break;
     }
 

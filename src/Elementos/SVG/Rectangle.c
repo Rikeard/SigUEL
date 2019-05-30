@@ -1,7 +1,7 @@
 #include "header/Rectangle.h"
 
 typedef struct Retangulo{
-    Point* coordenada;
+    Point coordenada;
     double height, width;
 }Retangulo;
 

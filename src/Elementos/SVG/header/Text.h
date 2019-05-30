@@ -8,11 +8,11 @@
 typedef void* Text;
 
 
-Text* Text_new(double x, double y, char* txt);
+Text Text_new(double x, double y, char* txt);
 
 char* Text_getText(Text tt);
 
-Point* Text_getCoordenada(Text t);
+Point Text_getCoordenada(Text t);
 
 void Text_liberar(Text t);
 

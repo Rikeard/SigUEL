@@ -549,8 +549,11 @@ void qry_DQ(char* comando, Runtime rt, FILE* respostaFile){
         }
     }
 
-    if(objeto == NULL)
+
+    if(objeto == NULL){
         reportError(__func__, "Objeto de referência não encontrado");
+        return;
+    }        
 
     
     bool metricaL1 = true;
@@ -569,8 +572,10 @@ void qry_DQ(char* comando, Runtime rt, FILE* respostaFile){
 
     fprintf(respostaFile, "%sDeletando quadras em um raio de %lf do %s com ID %s\n", comando, r, nomeObj, svgObject_getId(origin));
 
+    Point crcd = Circle_getCoordenada(svgObject_getElemento(origin));
+
     struct argumento_dq_t *arg = malloc(sizeof(struct argumento_dq_t));
-    arg->p = Circle_getCoordenada(svgObject_getElemento(origin));
+    arg->p = crcd;
     arg->quadras = quadras;
     arg->raio = r;
     arg->metricaL1 = metricaL1;
@@ -578,6 +583,9 @@ void qry_DQ(char* comando, Runtime rt, FILE* respostaFile){
 
     listaStatic_forEach(quadras, deleteQuadras, arg);
     fprintf(respostaFile, "\n");
+
+    listaStatic_add(runTime_getLista(rt, L_QUERY), svgObject_new(CIRCLE, DEFAULT, NULL, Circle_new(Point_getX(crcd), Point_getY(crcd), 7), "orange", "none", "stroke-width:3px;"));
+    listaStatic_add(runTime_getLista(rt, L_QUERY), svgObject_new(CIRCLE, DEFAULT, NULL, Circle_new(Point_getX(crcd), Point_getY(crcd), 9), "gold", "none", "stroke-width:3px;"));
 }
 
 void qry_Del(char* comando, Runtime rt, FILE* respostaFile){
@@ -612,6 +620,7 @@ void qry_Del(char* comando, Runtime rt, FILE* respostaFile){
     if(!delete){
         reportError(__func__, "Objeto não encontrado");
         printf("ID %s\n\n", id);
+        return;
     }else{
         fprintf(respostaFile, "%sDeletado o objeto %s\n\n", comando, nomeObj);
     }
@@ -635,7 +644,7 @@ void pintarQuadras(void* elemento, void* argumento){
     Rectangle rer = svgObject_getElemento(oct);
 
     double mr = 0;
-    mr = maiorDistancia(rer, x->p, true);
+    mr = maiorDistancia(rer, x->p, false);
 
     if(mr <= x->raio){
         fprintf(x->respostaFile, "--> Quadra ID: %s\n", svgObject_getId(oct));
@@ -713,6 +722,8 @@ void qry_CRD(char* comando, Runtime rt, FILE* respostaFile){
                     cord = Circle_getCoordenada(svgObject_getElemento(origin));
                 }else{
                     reportError(__func__, "Objeto não encontrado!");
+                    fprintf(respostaFile, "%sNão encontrado\n\n", comando);
+                    return;
                 }
             }
         }
@@ -803,7 +814,7 @@ void qry_Trns(char* comando, Runtime rt, FILE* respostaFile){
     arg->dy = dy;
     arg->respostaFile = respostaFile;
 
-    fprintf("%s", comando);
+    fprintf(respostaFile,"%s", comando);
 
     arg->tp = QUADRA;
     listaStatic_forEach(quadras, moveElement, arg);

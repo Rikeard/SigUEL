@@ -1,11 +1,11 @@
 #include "header/Text.h"
 
 typedef struct Texto{
-    Point* coordenada;
+    Point coordenada;
     char* txto;
 }Texto;
 
-Text* Text_new(double x, double y, char* txt){
+Text Text_new(double x, double y, char* txt){
     Texto *t= malloc(sizeof(Texto));
 
     t->coordenada = Point_new(x,y);
@@ -25,7 +25,7 @@ char* Text_getText(Text tt){
     return t->txto;
 }
 
-Point* Text_getCoordenada(Text t){
+Point Text_getCoordenada(Text t){
     Texto *tt = t;
     return tt->coordenada;
 }
