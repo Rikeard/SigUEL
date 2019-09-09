@@ -5,6 +5,7 @@
 #include "Container.h"
 #include "../Commons/header/cmm.h"
 #include "queryHandler.h"
+#include "../Engine/header/visibility.h"
 
 typedef enum fileTYPE{
     READONLY, WRITE, APPEND

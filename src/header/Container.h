@@ -5,11 +5,11 @@
 #include "../Elementos/header/commonSVG.h"
 
 typedef enum Listas{
-    L_GERAL, L_SEMAFOROS, L_QUADRAS, L_HIDRANTES, L_RADIOS, L_QUERY
+    L_GERAL, L_SEMAFOROS, L_QUADRAS, L_HIDRANTES, L_RADIOS, L_QUERY, L_PREDIOS, L_MUROS, L_SUPERPOS
 }Listas;
 
 typedef enum styleType{
-    S_RECTANGLE, S_CIRCLE, S_QUADRA, S_HIDRANTE, S_SEMAFORO, S_RADIO
+    S_RECTANGLE, S_CIRCLE, S_QUADRA, S_HIDRANTE, S_SEMAFORO, S_RADIO, S_PREDIO, S_MURO
 }styleType;
 
 typedef enum Styles{

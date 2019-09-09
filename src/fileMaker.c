@@ -73,7 +73,7 @@ char* toString(svgObject objeto){
                     if(possuiStyle)
                         sprintf(buffer, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" style=\"fill:%s;stroke:%s;\"/>\n", x1, y1, x2, y2, corPreenchimento, corBorda);
                     else
-                        sprintf(buffer, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" style=\"fill:%s;stroke:%s;%s\"/>\n", x1, y2, x2, y2, corPreenchimento, corBorda, style);
+                        sprintf(buffer, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" style=\"fill:%s;stroke:%s;%s\"/>\n", x1, y1, x2, y2, corPreenchimento, corBorda, style);
 
                 }
                 break;
@@ -91,6 +91,23 @@ char* toString(svgObject objeto){
                     else
                         sprintf(buffer, "<ellipse cx=\"%lf\" cy=\"%lf\" rx=\"%lf\" ry=\"%lf\" style=\"fill:%s;stroke:%s;%s\"/>\n", x, y, rx, ry, corPreenchimento, corBorda, style);
 
+                }
+                break;
+            
+            case TRIANGLE:
+                {
+                    Point p1 = Triangle_getP1(rt);
+                    Point p2 = Triangle_getP2(rt);
+                    Point p3 = Triangle_getP3(rt);
+
+                    double x1 = Point_getX(p1), y1 = Point_getY(p1);
+                    double x2 = Point_getX(p2), y2 = Point_getY(p2);
+                    double x3 = Point_getX(p3), y3 = Point_getY(p3);
+
+                    if(possuiStyle)
+                        sprintf(buffer, "<polygon points=\"%lf,%lf %lf,%lf %lf,%lf\" style=\"fill:%s;stroke:%s;\" fill-opacity=\"0.5\" />\n", x1, y1, x2, y2, x3, y3, corPreenchimento, corBorda);
+                    else
+                        sprintf(buffer, "<polygon points=\"%lf,%lf %lf,%lf %lf,%lf\" style=\"fill:%s;stroke:%s;%s\" fill-opacity=\"0.5\" />\n", x1, y1, x2, y2, x3, y3, corPreenchimento, corBorda, style);
                 }
                 break;
 
@@ -175,6 +192,38 @@ char* toString(svgObject objeto){
 
                 }
                 break;
+            case PREDIO:
+                {
+                    Point cord = Rectangle_getCoordenada(rt);
+                    double x = Point_getX(cord);
+                    double y = Point_getY(cord);
+                    double l = Rectangle_getLargura(rt);
+                    double a = Rectangle_getAltura(rt);
+
+                    if(possuiStyle)
+                        sprintf(buffer, "<rect x=\"%lf\" y=\"%lf\"  width=\"%lf\" height=\"%lf\" style=\"fill:%s;stroke:%s;\"/>\n", x, y, l, a, corPreenchimento, corBorda);
+                    else
+                        sprintf(buffer, "<rect x=\"%lf\" y=\"%lf\"  width=\"%lf\" height=\"%lf\" style=\"fill:%s;stroke:%s;%s\"/>\n", x, y, l, a, corPreenchimento, corBorda, style);
+                }
+
+                break;
+            case MURO:
+                {
+                    Point cord1 = Line_getCoordenada1(rt);
+                    Point cord2 = Line_getCoordenada2(rt);
+                    double x1 = Point_getX(cord1);
+                    double y1 = Point_getY(cord1);
+                    double x2 = Point_getX(cord2);
+                    double y2 = Point_getY(cord2);
+
+                    if(possuiStyle)
+                        sprintf(buffer, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" style=\"fill:%s;stroke:%s;\"/>\n", x1, y1, x2, y2, corPreenchimento, corBorda);
+                    else
+                        sprintf(buffer, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" style=\"fill:%s;stroke:%s;%s\"/>\n", x1, y1, x2, y2, corPreenchimento, corBorda, style);
+
+                }
+                break;
+
             default:
                 reportError(__func__, "Classe não encontrada");
                 break;
@@ -197,7 +246,7 @@ void iniciarSVGFILE(char* path){
     FILE* print = abrirArquivo(path, WRITE);
 
     //Inicializa SVG
-    fprintf(print,"<svg>\n");
+    fprintf(print,"<svg xmlns=\"http://www.w3.org/2000/svg\">\n");
     fclose(print);    
 }
 

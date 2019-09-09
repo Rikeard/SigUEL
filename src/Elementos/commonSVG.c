@@ -21,6 +21,9 @@ void SVG_Liberar(geometryType x, void* elemento){
         case POINT:
             Point_liberar(elemento);
             break;
+        case TRIANGLE:
+            Triangle_liberar(elemento);
+            break;
         default:
             reportError(__func__, "Tipo não tratado");
             break;

@@ -21,6 +21,7 @@ void* listaStatic_find(listaStatic lista, void* funcaoAchar, void* argumento);
 
 bool listaStatic_remove(listaStatic lista, void* funcaoAchar, void* argumento, void* funcaoDeletar);
 
+
 //////////////////////
 
 int listaStatic_length(listaStatic lista);

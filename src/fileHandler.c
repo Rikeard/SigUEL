@@ -86,6 +86,14 @@ void processaComandoGeo(char* comando, Runtime rt){
         geo_SW(comando, rt);
     }
 
+    if(stringEquals(tipo, "prd")){
+        geo_PRD(comando, rt);
+    }
+
+    if(stringEquals(tipo, "mur")){
+        geo_MUR(comando, rt);
+    }
+
     free(tipo);
 
 }
@@ -142,6 +150,22 @@ void processaComandoQry(char* comando, Runtime rt, FILE *svgFile, FILE *resposta
         qry_Trns(comando, rt, respostaFile);
     }
 
+    if(stringEquals(tipo, "brl")){
+        qry_Brl(comando, rt, svgFile);
+    }
+
+    if(stringEquals(tipo, "fi")){
+        qry_Fi(comando, rt, svgFile, respostaFile);
+    }
+
+    if(stringEquals(tipo, "fh")){
+        qry_Fh(comando, rt, respostaFile);
+    }
+
+    if(stringEquals(tipo, "fs")){
+        qry_Fs(comando, rt, respostaFile);
+    }
+
 
 }
 
@@ -170,6 +194,22 @@ void listRadioGeoToFile(void* elemento, void* argumento){
         adicionarSVGFile(Radio_getElemento(elemento), argumento);
 }
 
+void listPredioGeoToFile(void* elemento, void* argumento){
+  if(elemento != NULL)
+        adicionarSVGFile(Predio_getElemento(elemento), argumento);
+}
+
+void listMuroGeoToFile(void* elemento, void* argumento){
+  if(elemento != NULL)
+        adicionarSVGFile(Muro_getElemento(elemento), argumento);
+}
+
+void stringToGeoFile(void* elemento, void* argumento){
+    if(elemento != NULL){
+        fprintf(argumento, "%s", elemento);
+    }
+}
+
 void handleGeo(FILE* file, Runtime rt, char* path){
     char *buffer = calloc(256, sizeof(char));
 
@@ -188,6 +228,13 @@ void handleGeo(FILE* file, Runtime rt, char* path){
     listaStatic_forEach(runTime_getLista(rt, L_HIDRANTES), listHidranteGeoToFile, fl);
     listaStatic_forEach(runTime_getLista(rt, L_SEMAFOROS), listSemaforoGeoToFile, fl);
     listaStatic_forEach(runTime_getLista(rt, L_RADIOS), listRadioGeoToFile, fl);
+    listaStatic_forEach(runTime_getLista(rt, L_PREDIOS), listPredioGeoToFile, fl);
+    listaStatic_forEach(runTime_getLista(rt, L_MUROS), listMuroGeoToFile, fl);
+
+/* 
+    listaStatic vis = processarVisibilidade(runTime_getLista(rt, L_MUROS),runTime_getLista(rt, L_PREDIOS));
+
+    listaStatic_forEach(vis, triangulosGeoToFile, fl); */
 
 
     fclose(fl);
@@ -220,8 +267,12 @@ void handleQry(FILE* file, Runtime rt, char* pathSVG, char* pathTXT, char* nomeB
     listaStatic_forEach(runTime_getLista(rt, L_HIDRANTES), listHidranteGeoToFile, fl);
     listaStatic_forEach(runTime_getLista(rt, L_SEMAFOROS), listSemaforoGeoToFile, fl);
     listaStatic_forEach(runTime_getLista(rt, L_RADIOS), listRadioGeoToFile, fl);
+    listaStatic_forEach(runTime_getLista(rt, L_PREDIOS), listPredioGeoToFile, fl);
+    listaStatic_forEach(runTime_getLista(rt, L_MUROS), listMuroGeoToFile, fl);
 
     listaStatic_forEach(runTime_getLista(rt, L_QUERY), listGeoToFile, fl);
+
+    listaStatic_forEach(runTime_getLista(rt, L_SUPERPOS), stringToGeoFile, fl);
 
 
     fclose(fl);

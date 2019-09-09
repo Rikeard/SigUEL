@@ -13,6 +13,10 @@
 #include "../Elementos/Urbano/header/Quadra.h"
 #include "../Elementos/Urbano/header/Semaforo.h"
 #include "../Elementos/Urbano/header/Radio.h"
+#include "../Elementos/Urbano/header/Predio.h"
+#include "../Elementos/Urbano/header/Muro.h"
+#include "../Engine/header/visibility.h"
+#include "../Engine/header/heapsort.h"
 
 void geo_Nx(char* comando, Runtime rt);
 
@@ -58,6 +62,21 @@ void qry_CRD(char* comando, Runtime rt, FILE* respostaFile);
 
 void qry_Trns(char* comando, Runtime rt, FILE* respostaFile);
 
+/*
+# T3
+*/
+
+void geo_PRD(char* comando, Runtime rt);
+
+void geo_MUR(char* comando, Runtime rt);
+
+void qry_Brl(char* comando, Runtime rt, FILE* svg);
+
+void qry_Fi(char* comando, Runtime rt, FILE* svg, FILE* respostaFile);
+
+void qry_Fh(char* comando, Runtime rt, FILE* respostaFile);
+
+void qry_Fs(char* comando, Runtime rt, FILE* respostaFile);
 
 
 #endif

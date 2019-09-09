@@ -15,6 +15,9 @@ typedef struct Runtime_t{
     listaStatic l_radio;
     listaStatic l_semaforo;
     listaStatic l_query;
+    listaStatic l_predios;
+    listaStatic l_muro;
+    listaStatic l_superpos;
 
     Style_t s_circulo;
     Style_t s_retangulo;
@@ -22,6 +25,8 @@ typedef struct Runtime_t{
     Style_t s_hidrante;
     Style_t s_radio;
     Style_t s_semaforo;
+    Style_t s_predio;
+    Style_t s_muro;
 
 } Runtime_t;
 
@@ -46,6 +51,12 @@ void runTime_setStyle(Runtime t, Listas type, char* fill, char* borda, char* sty
             break;
         case S_SEMAFORO:
             s = &(r->s_semaforo);
+            break;
+        case S_PREDIO:
+            s = &(r->s_predio);
+            break;
+        case S_MURO:
+            s = &(r->s_muro);
             break;
         default:
             reportError(__func__, "Unhandled type");
@@ -92,6 +103,12 @@ double runTime_getBordaSize(Runtime t, Listas type){
         case S_SEMAFORO:
             s = &(r->s_semaforo);
             break;
+        case S_PREDIO:
+            s = &(r->s_predio);
+            break;
+        case S_MURO:
+            s = &(r->s_muro);
+            break;
         default:
             reportError(__func__, "Unhandled type");
             return 0;
@@ -122,6 +139,12 @@ bool runTime_styleIsSet(Runtime t, Listas type){
             break;
         case S_SEMAFORO:
             s = &(r->s_semaforo);
+            break;
+        case S_PREDIO:
+            s = &(r->s_predio);
+            break;
+        case S_MURO:
+            s = &(r->s_muro);
             break;
         default:
             reportError(__func__, "Unhandled type");
@@ -154,6 +177,12 @@ char* runTime_getStyle(Runtime t, Listas type, Styles st){
         case S_SEMAFORO:
             s = &(r->s_semaforo);
             break;
+        case S_PREDIO:
+            s = &(r->s_predio);
+            break;
+        case S_MURO:
+            s = &(r->s_muro);
+            break;
         default:
             reportError(__func__, "Unhandled type");
             return NULL;
@@ -179,12 +208,15 @@ char* runTime_getStyle(Runtime t, Listas type, Styles st){
 
 Runtime runTime_new(){
     Runtime_t *t = malloc(sizeof(Runtime_t));
-    t->l_geral = listaStatic_new(1000);
-    t->l_quadras = listaStatic_new(1000);
-    t->l_hidrantes = listaStatic_new(1000);
-    t->l_radio = listaStatic_new(1000);
-    t->l_semaforo = listaStatic_new(1000);
-    t->l_query = listaStatic_new(100000);
+    t->l_geral = listaStatic_new(100000);
+    t->l_quadras = listaStatic_new(100000);
+    t->l_hidrantes = listaStatic_new(100000);
+    t->l_radio = listaStatic_new(100000);
+    t->l_semaforo = listaStatic_new(100000);
+    t->l_query = listaStatic_new(500000);
+    t->l_predios = listaStatic_new(100000);
+    t->l_muro = listaStatic_new(100000);
+    t->l_superpos = listaStatic_new(1000);
 
     t->s_hidrante.isSet = false;
     t->s_circulo.isSet = false;
@@ -192,6 +224,8 @@ Runtime runTime_new(){
     t->s_radio.isSet = false;
     t->s_semaforo.isSet = false;
     t->s_retangulo.isSet = false;
+    t->s_predio.isSet = false;
+    t->s_muro.isSet = false;
 
     return t;
 }
@@ -216,6 +250,15 @@ listaStatic runTime_getLista(Runtime runtime, Listas type){
             break;
         case L_QUERY:
             return r->l_query;
+            break;
+        case L_PREDIOS:
+            return r->l_predios;
+            break;
+        case L_MUROS:
+            return r->l_muro;
+            break; 
+        case L_SUPERPOS:
+            return r->l_superpos;
             break;
         default:
             reportError(__func__, "Unhandled type");
@@ -244,6 +287,15 @@ void runTime_setLista(void* runtime, Listas type, listaStatic lista){
             break;
         case L_QUERY:
             r->l_query = lista;
+            break;
+        case L_PREDIOS:
+            r->l_predios = lista;
+            break;
+        case L_MUROS:
+            r->l_muro = lista;
+            break;
+        case L_SUPERPOS:
+            r->l_superpos = lista;
             break;
         default:
             reportError(__func__, "Unhandled type");

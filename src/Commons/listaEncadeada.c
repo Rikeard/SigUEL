@@ -90,8 +90,6 @@ void listaStatic_setSize(listaStatic lista, int tamanho){
     }
 }
 
-
-
 void* listaStatic_find(listaStatic lista, void* funcaoAchar, void* argumento){
     listaEncadeada* x = lista;
 
@@ -130,7 +128,7 @@ bool listaStatic_remove(listaStatic lista, void* funcaoAchar, void* argumento, v
         Node *current = &(x->lista[index]);
 
         if(find(current->elemento, argumento)){
-            printf("iniciando delete de %d\n", index);
+            //printf("iniciando delete de %d\n", index);
             //delete(current->elemento);
             current->elemento = NULL;
             current->disponivel = true;

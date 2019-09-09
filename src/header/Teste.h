@@ -1,1 +1,1 @@
-bool achar(void* argumento, void* elemento);
+/* bool achar(void* argumento, void* elemento); */
