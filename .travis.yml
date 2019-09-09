@@ -1,2 +1,2 @@
-install: cd ./src && make siguel
-compiler: gcc
+language: c
+script: cd ./src && make siguel
