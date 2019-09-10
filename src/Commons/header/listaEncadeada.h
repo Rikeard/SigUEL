@@ -13,6 +13,11 @@ void listaStatic_add(listaStatic lista, void* elemento);
 
 void listaStatic_setSize(listaStatic lista, int tamanho);
 
+/*
+    Recebe uma função com a estrutura [function void (void* elemento, void* argumento)] e a executa passando por todos elementos da lista
+    Passando o elemento como void* elemento, e o argumento recebido na função como void* argumento
+*/
+
 void listaStatic_forEach(listaStatic lista, void* function, void* argumento);
 
 void listaStatic_stats(listaStatic lista);

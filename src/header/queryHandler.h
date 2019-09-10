@@ -18,6 +18,10 @@
 #include "../Engine/header/visibility.h"
 #include "../Engine/header/heapsort.h"
 
+/*
+    As funções processam os comandos que podem ser enviados, elas sempre recebem a linha de comando inteira solicitada e eventualmente outras coisas de acordo com sua necessidade.
+*/
+
 void geo_Nx(char* comando, Runtime rt);
 
 void geo_C(char* comando, listaStatic lista, Runtime rt);
@@ -39,6 +43,7 @@ void qry_BB(char* comando, listaStatic lista, char* DirComNomeBase);
 */
 
 void geo_Q(char* comando, listaStatic quadra, Runtime rt);
+
 void geo_H(char* comando, listaStatic hidra, Runtime rt);
 
 void geo_S(char* comando, listaStatic sema, Runtime rt);
@@ -46,10 +51,13 @@ void geo_S(char* comando, listaStatic sema, Runtime rt);
 void geo_RB(char* comando, listaStatic radio, Runtime rt);
 
 void geo_CQ(char* comando, Runtime rt);
+
 void geo_CH(char* comando, Runtime rt);
 
 void geo_CR(char* comando, Runtime rt);
+
 void geo_CS(char* comando, Runtime rt);
+
 void geo_SW(char* comando, Runtime rt);
 
 void qry_DQ(char* comando, Runtime rt, FILE* respostaFile);

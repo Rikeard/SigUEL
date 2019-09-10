@@ -4,6 +4,10 @@
 #include "../Commons/header/listaEncadeada.h"
 #include "../Elementos/header/commonSVG.h"
 
+/*
+    O Container é uma objeto que controla e agrupa a maioria dos objetos durante a execução do programa, contendo suas listas, estilos, entre outros.
+*/
+
 typedef enum Listas{
     L_GERAL, L_SEMAFOROS, L_QUADRAS, L_HIDRANTES, L_RADIOS, L_QUERY, L_PREDIOS, L_MUROS, L_SUPERPOS
 }Listas;

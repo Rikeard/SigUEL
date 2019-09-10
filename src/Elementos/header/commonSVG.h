@@ -17,6 +17,10 @@ typedef enum Classe{
     DEFAULT, QUADRA, HIDRANTE, SEMAFORO, RADIO, PREDIO, MURO
 } Classe;
 
+/*
+    Responsável por encaminhar os frees corretos para cada objeto
+*/
+
 void SVG_Liberar(geometryType x, void* elemento);
 
 #endif
