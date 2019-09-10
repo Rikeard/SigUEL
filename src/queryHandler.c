@@ -512,6 +512,8 @@ void geo_PRD(char* comando, Runtime rt){
     Rectangle rer = svgObject_getElemento(oct);
     Point point = Rectangle_getCoordenada(rer);
 
+    listaStatic tex = runTime_getLista(rt, L_QUERY);
+
 
     double x = Point_getX(point), y = Point_getY(point), h = Rectangle_getAltura(rer), w = Rectangle_getLargura(rer);
 
@@ -524,6 +526,16 @@ void geo_PRD(char* comando, Runtime rt){
         runTime_getStyle(rt, S_PREDIO, COR_BORDA), 
         runTime_getStyle(rt, S_PREDIO, STYLE));
 
+        char* nm = calloc(10, sizeof(char));
+        sprintf(nm, "%.0lf", num);
+
+
+        Text t = Text_new(localX, localY + p, nm);
+
+        svgObject textObjet = svgObject_new(TEXT, DEFAULT, NULL, t, NULL, NULL, NULL);
+
+        listaStatic_add(tex, textObjet);
+
         listaStatic_add(predios, pr);
 
     }else if(stringEquals(lado, "N")){
@@ -534,6 +546,17 @@ void geo_PRD(char* comando, Runtime rt){
         runTime_getStyle(rt, S_PREDIO, COR_PREENCHIMENTO), 
         runTime_getStyle(rt, S_PREDIO, COR_BORDA), 
         runTime_getStyle(rt, S_PREDIO, STYLE));
+
+        char* nm = calloc(10, sizeof(char));
+        sprintf(nm, "%.0lf", num);
+
+
+        Text t = Text_new(localX, localY + p, nm);
+
+        svgObject textObjet = svgObject_new(TEXT, DEFAULT, NULL, t, NULL, NULL, NULL);
+
+        listaStatic_add(tex, textObjet);
+        
 
         listaStatic_add(predios, pr);
 
@@ -546,6 +569,16 @@ void geo_PRD(char* comando, Runtime rt){
         runTime_getStyle(rt, S_PREDIO, COR_BORDA), 
         runTime_getStyle(rt, S_PREDIO, STYLE));
 
+        char* nm = calloc(10, sizeof(char));
+        sprintf(nm, "%.0lf", num);
+
+
+        Text t = Text_new(localX, localY + f, nm);
+        svgObject textObjet = svgObject_new(TEXT, DEFAULT, NULL, t, NULL, NULL, NULL);
+
+        listaStatic_add(tex, textObjet);
+        
+
         listaStatic_add(predios, pr);
         
     }else if(stringEquals(lado, "L")){
@@ -556,6 +589,15 @@ void geo_PRD(char* comando, Runtime rt){
         runTime_getStyle(rt, S_PREDIO, COR_PREENCHIMENTO), 
         runTime_getStyle(rt, S_PREDIO, COR_BORDA), 
         runTime_getStyle(rt, S_PREDIO, STYLE));
+
+        char* nm = calloc(10, sizeof(char));
+        sprintf(nm, "%.0lf", num);
+
+        Text t = Text_new(localX, localY + f, nm);
+        svgObject textObjet = svgObject_new(TEXT, DEFAULT, NULL, t, NULL, NULL, NULL);
+
+        listaStatic_add(tex, textObjet);
+        
 
         listaStatic_add(predios, pr);
     }else{
