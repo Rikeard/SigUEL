@@ -18,6 +18,10 @@ Semaforo Semaforo_new(char* id, double x, double y, char* fill, char* borda, cha
 }
 
 bool Semaforo_comparadorID(void* objeto, void* argumento){
-    svgObject ob = Semaforo_getElemento(objeto);
-    return stringEquals(svgObject_getId(ob), argumento);
+    if(objeto != NULL){
+        svgObject ob = Semaforo_getElemento(objeto);
+        return stringEquals(svgObject_getId(ob), argumento);
+    }else{
+        return false;
+    }
 }

@@ -66,7 +66,7 @@ void listaStatic_forEach(listaStatic lista, void* function, void* argumento){
     void (*apply)(void *atual, void* arg) = function;
 
     int index = x->primeiro;
-    while(index != x->ultimo){
+    while(index != x->ultimo && index >= 0){
         Node *nd = &(x->lista[index]);
         //printf("INDEX:: %d | ULTIMO:: %d\n", index, x->ultimo);
         index = nd->proximo;
@@ -97,7 +97,7 @@ void* listaStatic_find(listaStatic lista, void* funcaoAchar, void* argumento){
 
     int index = x->primeiro;
 
-    while(index != x->ultimo){
+    while(index != x->ultimo && index >= 0){
         Node nd = x->lista[index];
 
         if(find(nd.elemento, argumento)){
