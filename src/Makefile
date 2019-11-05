@@ -1,11 +1,11 @@
 OBJS = $(shell find . -name '*.c')
 
 MM:= ./main.c
-MT:= ./Teste.c
+MV:= 
 REP:=  
 
-OBJT=$(subst $(MM), $(REP), $(OBJS))
-OBJM=$(subst $(MT), $(REP), $(OBJS))
+OBJM=$(subst $(MV), $(REP), $(OBJS))
+OBJV=$(subst $(MM), $(REP), $(OBJS))
 
 CC = gcc
 COMPILER_FLAGS = -std=c99 -fstack-protector-all
@@ -16,9 +16,13 @@ siguel: $(OBJM)
 	rm -f siguel
 	$(CC) $(OBJM) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(OBJ_NAME) 
 
-teste: $(OBJT)
-	rm -f teste
-	$(CC) $(OBJT) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o teste
+visibility: $(OBJV)
+	rm -f visibility
+	$(CC) $(OBJV) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o visibility
+
+all: $(OBJS)
+	rm -f siguel
+	$(CC) $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o siguel
 
 clean:
 	rm -f siguel

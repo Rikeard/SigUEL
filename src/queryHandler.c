@@ -15,18 +15,18 @@ void geo_Nx(char* comando, Runtime rt){
     if(maxcr == -1 || maxq == -1 || maxh == -1 || maxs == -1 || maxs == -1 || maxr == -1 || maxp == -1 || maxm == -1)
         reportError(__func__, "Valor identificado incorretamente");
 
-    listaStatic_setSize(runTime_getLista(rt, L_GERAL), maxcr);
+  /*   listaStatic_setSize(runTime_getLista(rt, L_GERAL), maxcr);
     listaStatic_setSize(runTime_getLista(rt, L_QUADRAS), maxq);
     listaStatic_setSize(runTime_getLista(rt, L_HIDRANTES), maxh);
     listaStatic_setSize(runTime_getLista(rt, L_SEMAFOROS), maxs);
     listaStatic_setSize(runTime_getLista(rt, L_RADIOS), maxr);
     listaStatic_setSize(runTime_getLista(rt, L_PREDIOS), maxp);
-    listaStatic_setSize(runTime_getLista(rt, L_MUROS), maxm);
+    listaStatic_setSize(runTime_getLista(rt, L_MUROS), maxm); */
 
     //Supostamente eu faço algo com isso cofcof
 }
 
-void geo_C(char* comando, listaStatic lista, Runtime rt){
+void geo_C(char* comando, treeRB arvore, Runtime rt){
 
     char* id = calloc(64, sizeof(char));
     double r = -1,x = -1,y = -1;
@@ -45,7 +45,8 @@ void geo_C(char* comando, listaStatic lista, Runtime rt){
         obj = svgObject_new(CIRCLE, DEFAULT, id, b, cor1, cor2, NULL);
     }
 
-    listaStatic_add(lista, obj);
+    //listaStatic_add(lista, obj);
+    adicionarElemento(arvore, obj, id);
     //TODO: Adicionar o obj na estrutura agora.
 
     //o svgObject realiza uma cópia das string dentro dele alocando somente o tamanho necessário
@@ -56,7 +57,7 @@ void geo_C(char* comando, listaStatic lista, Runtime rt){
     }
 }
 
-void geo_R(char* comando, listaStatic lista, Runtime rt){
+void geo_R(char* comando, treeRB arvore, Runtime rt){
 
     char* id = calloc(64, sizeof(char));
     double w = -1, h = -1, x = -1,y = -1;
@@ -79,7 +80,8 @@ void geo_R(char* comando, listaStatic lista, Runtime rt){
     free(id); free(cor1); free(cor2); 
 
     //TODO: Adicionar o obj na estrutura agora.
-    listaStatic_add(lista, obj);
+    //listaStatic_add(lista, obj);
+    adicionarElemento(arvore, obj, id);
 
     if(h == -1 ||  w == -1 || x == -1 || y == -1){
         reportError(__func__, "Falha no Scanf - Repassado valores negativos (-1) : Retangulo");
@@ -89,7 +91,7 @@ void geo_R(char* comando, listaStatic lista, Runtime rt){
     
 }
 
-void geo_T(char* comando, listaStatic lista){
+void geo_T(char* comando, treeRB arvore){
     double x = -1, y = -1;
     char *buffer = calloc(256, sizeof(char));
     sscanf(comando, "%*s %lf %lf %[^\n]s", &x, &y, buffer);
@@ -98,25 +100,29 @@ void geo_T(char* comando, listaStatic lista){
     sprintf(texto, "%s", buffer);
     free(buffer);
 
+    char* chave = calloc(32, sizeof(char));
+    sprintf(chave, "%ld", chave);
+
 
     Text t = Text_new(x,y, texto);
     svgObject obj = svgObject_new(TEXT, DEFAULT,  NULL, t, NULL, NULL, NULL);
       //TODO: Adicionar o obj na estrutura agora.
-    listaStatic_add(lista, obj);
+    //listaStatic_add(lista, obj);
+    adicionarElemento(arvore, obj, chave);
 
     //(*idnegativo)--;
 
 }
 
-void qry_O(char* comando, listaStatic lista, FILE* respostaFile, listaStatic svgList){
+void qry_O(char* comando, treeRB arvore, FILE* respostaFile, treeRB svgList){
 
     char *j = calloc(32, sizeof(char));
     char *k = calloc(32, sizeof(char));
     sscanf(comando, "%*s %s %s", j, k);
 
     //Busca os objetos
-    svgObject jb = listaStatic_find(lista, svgObject_comparadorID, j);
-    svgObject kb = listaStatic_find(lista, svgObject_comparadorID, k);
+    svgObject jb = buscarElemento(arvore, j);
+    svgObject kb = buscarElemento(arvore, k);
 
     bool col = colide(jb, kb);
     Rectangle rxt = envolveObjeto(jb, kb);
@@ -132,7 +138,8 @@ void qry_O(char* comando, listaStatic lista, FILE* respostaFile, listaStatic svg
         fprintf(respostaFile, "%sNÃO\n\n", comando);
     }
 
-    listaStatic_add(svgList, obj);
+    //listaStatic_add(svgList, obj);
+    adicionarElemento(svgList, obj, NULL);
     
     free(j);
     free(k);
@@ -143,7 +150,7 @@ void qry_O(char* comando, listaStatic lista, FILE* respostaFile, listaStatic svg
     return;
 }
 
-void qry_I(char* comando, listaStatic lista, FILE* respostaFile, listaStatic svgList){
+void qry_I(char* comando, treeRB arvore, FILE* respostaFile, treeRB  svgList){
         double x = -1, y = -1;
         char *id = calloc(32, sizeof(char));
         sscanf(comando, "%*s %s %lf %lf", id, &x, &y);
@@ -151,7 +158,7 @@ void qry_I(char* comando, listaStatic lista, FILE* respostaFile, listaStatic svg
         if(id == NULL || x == -1 || y == -1) 
             reportError(__func__, "Erro ao obter os ID ou valor XY");
 
-        svgObject teste = listaStatic_find(lista, svgObject_comparadorID, id);
+        svgObject teste = buscarElemento(arvore, id);
 
         if(teste == NULL)
             reportError(__func__, "Incapaz de proceder: Busca retornou NULL");
@@ -180,8 +187,10 @@ void qry_I(char* comando, listaStatic lista, FILE* respostaFile, listaStatic svg
             Line lt = Line_newXY(x, y, Point_getX(c1_cord), Point_getY(c1_cord));
             svgObject lnrt = svgObject_new(LINE, DEFAULT, NULL, lt, "black", "black", NULL);
 
-            listaStatic_add(svgList, lnrt);
-            listaStatic_add(svgList, respt);
+            //listaStatic_add(svgList, lnrt);
+            //listaStatic_add(svgList, respt);
+            adicionarElemento(svgList, lnrt, NULL);
+            adicionarElemento(svgList, respt, NULL);
             // adicionarSVGFile(lnrt, svgFile);
             // adicionarSVGFile(respt, svgFile);
 
@@ -221,8 +230,10 @@ void qry_I(char* comando, listaStatic lista, FILE* respostaFile, listaStatic svg
             Line lt = Line_newXY(cord_x, cord_y, cdm_x, cdm_y);
             svgObject lnrt = svgObject_new(LINE, DEFAULT, NULL, lt, "black", "black", NULL);
 
-            listaStatic_add(svgList, lnrt);
-            listaStatic_add(svgList, respt);
+            //listaStatic_add(svgList, lnrt);
+            //listaStatic_add(svgList, respt);
+            adicionarElemento(svgList, lnrt, NULL);
+            adicionarElemento(svgList, respt, NULL);
             // adicionarSVGFile(lnrt, svgFile);
             // adicionarSVGFile(respt, svgFile);
 
@@ -242,14 +253,14 @@ void qry_I(char* comando, listaStatic lista, FILE* respostaFile, listaStatic svg
 
 }
 
-void qry_D(char* comando, listaStatic lista, FILE *respostaFile, listaStatic svgList){
+void qry_D(char* comando, treeRB arvore, FILE *respostaFile, treeRB svgList){
     char *id1 = calloc(32, sizeof(char));
     char *id2 = calloc(32, sizeof(char));
 
     sscanf(comando, "%*s %s %s", id1, id2);
 
-    svgObject jb = listaStatic_find(lista, svgObject_comparadorID, id1);
-    svgObject kb = listaStatic_find(lista, svgObject_comparadorID, id2);
+    svgObject jb = listaStatic_find(arvore, id1);
+    svgObject kb = listaStatic_find(arvore, id2);
 
     if(kb == NULL || kb == NULL){
         reportError(__func__, "Incapaz de proceder: Busca retornou NULL");
@@ -283,8 +294,10 @@ void qry_D(char* comando, listaStatic lista, FILE *respostaFile, listaStatic svg
     ox1 = svgObject_new(LINE, DEFAULT, NULL, lt, "black", "black", NULL);
     ox2 = svgObject_new(TEXT, DEFAULT, NULL, tt, "black", "black", NULL);
 
-    listaStatic_add(svgList, ox1);
-    listaStatic_add(svgList, ox2);
+    //listaStatic_add(svgList, ox1);
+    //listaStatic_add(svgList, ox2);
+    adicionarElemento(svgList, ox1, NULL);
+    adicionarElemento(svgList, ox2, NULL);
 
     Point_liberar(p1);
     Point_liberar(p2);
@@ -325,7 +338,7 @@ void qry_BB2(void* obj, void *argumento){
     
 }
 
-void qry_BB(char* comando, listaStatic lista, char* DirComNomeBase){
+void qry_BB(char* comando, treeRB arvore, char* DirComNomeBase){
     char *sufixo = calloc(32, sizeof(char));
     char *cor = calloc(32, sizeof(char));
     sscanf(comando, "%*s %s %s", sufixo, cor);
@@ -346,7 +359,7 @@ void qry_BB(char* comando, listaStatic lista, char* DirComNomeBase){
     xt->sfxsvg = sfxsvg;
     xt->cor = cor;
 
-    listaStatic_forEach(lista, qry_BB2, xt);
+    forEach(arvore, qry_BB2, xt);
     //processamentoExterno --> aplica a função em todos elementos da lista
     fclose(sfxsvg);
     finalizarSVGFILE(stpath);
@@ -356,7 +369,7 @@ void qry_BB(char* comando, listaStatic lista, char* DirComNomeBase){
 # T2
 */
 
-void geo_Q(char* comando, listaStatic quadra, Runtime rt){
+void geo_Q(char* comando, treeRB  quadra, Runtime rt){
     char* id = calloc(64, sizeof(char));
     double x = -1,y = -1, w = -1, h = -1;
 
@@ -381,7 +394,7 @@ void geo_Q(char* comando, listaStatic quadra, Runtime rt){
     }
 }
 
-void geo_H(char* comando, listaStatic hidra, Runtime rt){
+void geo_H(char* comando, treeRB  hidra, Runtime rt){
     char* id = calloc(64, sizeof(char));
     double x = -1,y = -1;
 
@@ -402,7 +415,7 @@ void geo_H(char* comando, listaStatic hidra, Runtime rt){
     free(id); 
 }
 
-void geo_S(char* comando, listaStatic sema, Runtime rt){
+void geo_S(char* comando, treeRB  sema, Runtime rt){
     char* id = calloc(64, sizeof(char));
     double x = -1,y = -1;
 
@@ -423,7 +436,7 @@ void geo_S(char* comando, listaStatic sema, Runtime rt){
     free(id); 
 }
 
-void geo_RB(char* comando, listaStatic radio, Runtime rt){
+void geo_RB(char* comando, treeRB  radio, Runtime rt){
     char* id = calloc(64, sizeof(char));
     double x = -1,y = -1;
 
@@ -497,9 +510,9 @@ void geo_PRD(char* comando, Runtime rt){
     mrg = -1; //Calçada 
 
     sscanf(comando, "%*s %s %s %lf %lf %lf %lf", cep, lado, &num, &f, &p, &mrg);
-    listaStatic quadras = runTime_getLista(rt,L_QUADRAS);
+    treeRB  quadras = runTime_getLista(rt,L_QUADRAS);
 
-    listaStatic predios = runTime_getLista(rt,L_PREDIOS);
+    treeRB  predios = runTime_getLista(rt,L_PREDIOS);
 
     void *objeto = listaStatic_find(quadras, Quadra_comparadorID, cep);
     if(objeto == NULL){
@@ -512,7 +525,7 @@ void geo_PRD(char* comando, Runtime rt){
     Rectangle rer = svgObject_getElemento(oct);
     Point point = Rectangle_getCoordenada(rer);
 
-    listaStatic tex = runTime_getLista(rt, L_QUERY);
+    treeRB  tex = runTime_getLista(rt, L_QUERY);
 
 
     double x = Point_getX(point), y = Point_getY(point), h = Rectangle_getAltura(rer), w = Rectangle_getLargura(rer);
@@ -610,7 +623,7 @@ void geo_MUR(char* comando, Runtime rt){
 
     sscanf(comando, "%*s %lf %lf %lf %lf", &x1, &y1, &x2, &y2);
 
-    listaStatic muros = runTime_getLista(rt,L_MUROS);
+    treeRB  muros = runTime_getLista(rt,L_MUROS);
 
     /* printf("MURO EM (%lf %lf) (%lf %lf)\n", x1, y1, x2, y2); */
 
@@ -627,7 +640,7 @@ void deleteQuadras(void* elemento, void* argumento){
 
     struct argumento_dq_t{
         Point p;
-        listaStatic quadras;
+        treeRB  quadras;
         double raio;
         bool metricaL1;
         FILE* respostaFile;
@@ -659,10 +672,10 @@ void qry_DQ(char* comando, Runtime rt, FILE* respostaFile){
     double r = -1;
 
     sscanf(comando, "%*s %s %s %lf", l1l2, id, &r);
-    listaStatic quadras = runTime_getLista(rt,L_QUADRAS);
-    listaStatic hidrantes = runTime_getLista(rt,L_HIDRANTES);
-    listaStatic semaforos = runTime_getLista(rt,L_SEMAFOROS);
-    listaStatic radios = runTime_getLista(rt,L_RADIOS);
+    treeRB  quadras = runTime_getLista(rt,L_QUADRAS);
+    treeRB  hidrantes = runTime_getLista(rt,L_HIDRANTES);
+    treeRB  semaforos = runTime_getLista(rt,L_SEMAFOROS);
+    treeRB  radios = runTime_getLista(rt,L_RADIOS);
 
     svgObject origin;
 
@@ -705,7 +718,7 @@ void qry_DQ(char* comando, Runtime rt, FILE* respostaFile){
 
     struct argumento_dq_t{
         Point p;
-        listaStatic quadras;
+        treeRB  quadras;
         double raio;
         bool metricaL1;
         FILE* respostaFile;
@@ -733,10 +746,10 @@ void qry_Del(char* comando, Runtime rt, FILE* respostaFile){
     char* id = calloc(64, sizeof(char));
 
     sscanf(comando, "%*s %s",id);
-    listaStatic quadras = runTime_getLista(rt,L_QUADRAS);
-    listaStatic hidrantes = runTime_getLista(rt,L_HIDRANTES);
-    listaStatic semaforos = runTime_getLista(rt,L_SEMAFOROS);
-    listaStatic radios = runTime_getLista(rt,L_RADIOS);
+    treeRB  quadras = runTime_getLista(rt,L_QUADRAS);
+    treeRB  hidrantes = runTime_getLista(rt,L_HIDRANTES);
+    treeRB  semaforos = runTime_getLista(rt,L_SEMAFOROS);
+    treeRB  radios = runTime_getLista(rt,L_RADIOS);
 
     bool delete = false;
     char* nomeObj = calloc(32, sizeof(char));
@@ -796,7 +809,7 @@ void pintarQuadras(void* elemento, void* argumento){
         
 }
     
-void qry_CBQ(char* comando, listaStatic quadras, FILE* respostaFile){
+void qry_CBQ(char* comando, treeRB  quadras, FILE* respostaFile){
     char* cor = calloc(64, sizeof(char));
     double x = 0, y = 0, r = 0;
 
@@ -832,10 +845,10 @@ void qry_CRD(char* comando, Runtime rt, FILE* respostaFile){
     char* nomeObj = calloc(32, sizeof(char));
     Point cord;
 
-    listaStatic quadras = runTime_getLista(rt,L_QUADRAS);
-    listaStatic hidrantes = runTime_getLista(rt,L_HIDRANTES);
-    listaStatic semaforos = runTime_getLista(rt,L_SEMAFOROS);
-    listaStatic radios = runTime_getLista(rt,L_RADIOS);
+    treeRB  quadras = runTime_getLista(rt,L_QUADRAS);
+    treeRB  hidrantes = runTime_getLista(rt,L_HIDRANTES);
+    treeRB  semaforos = runTime_getLista(rt,L_SEMAFOROS);
+    treeRB  radios = runTime_getLista(rt,L_RADIOS);
 
 
     objeto = listaStatic_find(quadras, Quadra_comparadorID, id);
@@ -944,10 +957,10 @@ void qry_Trns(char* comando, Runtime rt, FILE* respostaFile){
         Classe tp;
     };
 
-    listaStatic quadras = runTime_getLista(rt,L_QUADRAS);
-    listaStatic hidrantes = runTime_getLista(rt,L_HIDRANTES);
-    listaStatic semaforos = runTime_getLista(rt,L_SEMAFOROS);
-    listaStatic radios = runTime_getLista(rt,L_RADIOS);
+    treeRB  quadras = runTime_getLista(rt,L_QUADRAS);
+    treeRB  hidrantes = runTime_getLista(rt,L_HIDRANTES);
+    treeRB  semaforos = runTime_getLista(rt,L_SEMAFOROS);
+    treeRB  radios = runTime_getLista(rt,L_RADIOS);
 
     struct argumento_mv_t *arg = malloc(sizeof(struct argumento_mv_t));
     arg->box = Rectangle_new(x,y,h,w);
@@ -982,14 +995,14 @@ void qry_Brl(char* comando, Runtime rt, FILE* fl){
     double x = 0, y = 0;
     sscanf(comando, "%*s %lf %lf", &x, &y);
 
-    listaStatic muros = runTime_getLista(rt,L_MUROS);
-    listaStatic predios = runTime_getLista(rt,L_PREDIOS);
-    listaStatic query = runTime_getLista(rt, L_QUERY);
+    treeRB  muros = runTime_getLista(rt,L_MUROS);
+    treeRB  predios = runTime_getLista(rt,L_PREDIOS);
+    treeRB  query = runTime_getLista(rt, L_QUERY);
 
-    listaStatic triangles = processarVisibilidade(x, y, muros, predios);
+    treeRB  triangles = processarVisibilidade(x, y, muros, predios);
     listaStatic_forEach(triangles, adicionarAoQuery, query);
 
-    listaStatic sPos = runTime_getLista(rt, L_SUPERPOS);
+    treeRB  sPos = runTime_getLista(rt, L_SUPERPOS);
     char* kabum = malloc(sizeof(char)*5000);
 
     sprintf(kabum, "<g z-index=\"100\" transform=\"translate(%lf %lf) scale(0.2 0.2)\"><path d=\"m396.699219 126.699219c-40.5 42-69 92.699219-84 147.601562-1.199219 5.097657 12.601562 10.199219 11.402343 15.296875-1.203124 4.5-17.101562 9.300782-17.703124 14.101563-1.5 8.101562-2.699219 16.5-3.597657 24.898437-.902343 9.902344-1.5 20.101563-1.800781 30.300782v123.101562h-90v-123.101562c-.300781-10.199219-.902344-20.398438-1.800781-30.296876-.902344-8.402343-2.101563-16.5-3.601563-24.902343-.601562-5.097657-16.796875-9.898438-17.699218-14.699219-1.199219-4.800781 12.300781-9.601562 11.097656-14.398438-14.699219-55.503906-43.496094-106.203124-84.296875-148.5l-24.601563-25.5 165.902344.296876 165.300781.300781zm0 0\" fill=\"#fdbf00\"/><path d=\"m396.699219 126.699219c-40.5 42-69 92.699219-84 147.601562-1.199219 5.097657 12.601562 10.199219 11.402343 15.296875-1.203124 4.5-17.101562 9.300782-17.703124 14.101563-1.5 8.101562-2.699219 16.5-3.597657 24.898437-.902343 9.902344-1.5 20.101563-1.800781 30.300782v123.101562h-45v-381.101562l165.300781.300781zm0 0\" fill=\"#ff9f00\"/><path d=\"m436 512h-360c0-30.601562 24-57 54.300781-59.699219l7.800781-.902343 3.898438-6.597657c7.800781-13.800781 23.398438-22.800781 39.300781-22.800781 3.300781 0 6.597657.597656 9.898438 1.199219l9.902343 2.402343 6-8.101562c11.398438-15.898438 29.699219-25.5 48.898438-25.5s37.5 9.601562 48.898438 25.5l6 8.101562 9.902343-2.402343c3.300781-.601563 6.597657-1.199219 9.898438-1.199219 15.902343 0 31.5 9 39.300781 22.800781l3.898438 6.597657 7.800781.902343c30.300781 2.699219 54.300781 29.097657 54.300781 59.699219zm0 0\" fill=\"#ffd400\"/><path d=\"m391 316c0 28.5-50.097656 39-90 42.898438-20.097656 1.800781-37.5 2.101562-45 2.101562s-24.902344-.300781-45-2.101562c-39.902344-3.898438-90-14.398438-90-42.898438 0-21 26.101562-35.101562 78-41.398438 2.699219 9.597657 5.101562 19.199219 6.601562 29.097657-27.601562 3.300781-43.203124 8.699219-50.402343 12.300781 8.699219 4.5 27 9.601562 54 12.597656 13.5 1.5 29.101562 2.402344 46.800781 2.402344s33.300781-.902344 46.800781-2.402344c27-2.996094 45.300781-8.101562 54-12.597656-7.199219-3.601562-22.800781-9-50.402343-12.300781 1.5-9.898438 3.902343-19.800781 6.300781-29.398438 51.902343 6.597657 78.300781 20.699219 78.300781 41.699219zm0 0\" fill=\"#ffd400\"/><path d=\"m445.601562 90.300781c-12.300781-35.699219-45.601562-60.300781-84.601562-60.300781-9.300781 0-18.601562 1.5-27.597656 4.5-19.804688-21.902344-48.003906-34.5-77.402344-34.5s-57.597656 12.597656-77.402344 34.5c-8.996094-3-18.296875-4.5-27.597656-4.5-39 0-72.300781 24.601562-84.601562 60.300781-35.097657-3.300781-66.398438 25.898438-66.398438 60.699219 0 33 27 60 60 60 15 0 30.097656-5.398438 40.902344-15.300781 29.398437 19.800781 70.496094 20.101562 100.496094-.300781 16.5 10.203124 35.402343 15.300781 54.601562 15.300781s38.101562-5.097657 54.601562-15.300781c29.699219 20.402343 71.097657 20.101562 100.496094.300781 10.804688 9.902343 25.902344 15.300781 40.902344 15.300781 33 0 60-27 60-60 0-34.800781-31.300781-64-66.398438-60.699219zm0 0\" fill=\"#ffd400\"/><g fill=\"#fdbf00\"><path d=\"m301 358.898438c-20.097656 1.800781-37.5 2.101562-45 2.101562v-30c17.699219 0 33.300781-.902344 46.800781-2.402344 27-2.996094 45.300781-8.101562 54-12.597656-7.199219-3.601562-22.800781-9-50.402343-12.300781 1.5-9.898438 3.902343-19.800781 6.300781-29.398438 51.902343 6.597657 78.300781 20.699219 78.300781 41.699219 0 28.5-50.097656 39-90 42.898438zm0 0\"/><path d=\"m436 512h-180v-120c19.199219 0 37.5 9.601562 48.898438 25.5l6 8.101562 9.902343-2.402343c3.300781-.601563 6.597657-1.199219 9.898438-1.199219 15.902343 0 31.5 9 39.300781 22.800781l3.898438 6.597657 7.800781.902343c30.300781 2.699219 54.300781 29.097657 54.300781 59.699219zm0 0\"/><path d=\"m512 151c0 33-27 60-60 60-15 0-30.097656-5.398438-40.902344-15.300781-29.398437 19.800781-70.796875 20.101562-100.496094-.300781-16.5 10.203124-35.402343 15.300781-54.601562 15.300781v-210.699219c29.398438 0 57.597656 12.597656 77.402344 34.5 8.996094-3 18.296875-4.5 27.597656-4.5 39 0 72.300781 24.601562 84.601562 60.300781 35.097657-3.300781 66.398438 25.898438 66.398438 60.699219zm0 0\"/></g></g>\n", x-50, y-70);
@@ -1089,9 +1102,9 @@ void qry_Fi(char* comando, Runtime rt, FILE* svg, FILE* respostaFile){
     int ns = 0;
     sscanf(comando, "%*s %lf %lf %d %lf", &x, &y, &ns, &r);
 
-    listaStatic semaforos = runTime_getLista(rt, L_SEMAFOROS);
-    listaStatic hidrantes = runTime_getLista(rt, L_HIDRANTES);
-    listaStatic qry = runTime_getLista(rt, L_QUERY);
+    treeRB  semaforos = runTime_getLista(rt, L_SEMAFOROS);
+    treeRB  hidrantes = runTime_getLista(rt, L_HIDRANTES);
+    treeRB  qry = runTime_getLista(rt, L_QUERY);
 
     Point loc = Point_new(x, y);
 
@@ -1172,7 +1185,7 @@ void qry_Fi(char* comando, Runtime rt, FILE* svg, FILE* respostaFile){
         listaStatic_add(qry, ox2);
     }
 
-    listaStatic sPos = runTime_getLista(rt, L_SUPERPOS);
+    treeRB  sPos = runTime_getLista(rt, L_SUPERPOS);
     char* fogueira = malloc(sizeof(char)*2048);
 
     sprintf(fogueira, "<g z-index=\"101\" transform=\"translate(%lf %lf) scale(0.2 0.2)\"><path style=\"fill:#FFB446;\" d=\"M97.103,353.103C97.103,440.86,168.244,512,256,512l0,0c87.756,0,158.897-71.14,158.897-158.897c0-88.276-44.138-158.897-14.524-220.69c0,0-47.27,8.828-73.752,79.448c0,0-88.276-88.276-51.394-211.862c0,0-89.847,35.31-80.451,150.069c8.058,98.406-9.396,114.759-9.396,114.759c0-79.448-62.115-114.759-62.115-114.759C141.241,247.172,97.103,273.655,97.103,353.103z\"/><path style=\"fill:#FFDC64;\" d=\"M370.696,390.734c0,66.093-51.033,122.516-117.114,121.241c-62.188-1.198-108.457-48.514-103.512-110.321c2.207-27.586,23.172-72.276,57.379-117.517l22.805,13.793C229.517,242.023,256,167.724,256,67.724C273.396,246.007,370.696,266.298,370.696,390.734z\"/><path style=\"fill:#FFFFFF;\" d=\"M211.862,335.448c-8.828,52.966-26.483,72.249-26.483,105.931C185.379,476.69,216.998,512,256,512	l0,0c39.284,0,70.729-32.097,70.62-71.381c-0.295-105.508-61.792-158.136-61.792-158.136c8.828,52.966-17.655,79.448-17.655,79.448C236.141,345.385,211.862,335.448,211.862,335.448z\"/></g>\n", x-55, y-70);
@@ -1207,7 +1220,7 @@ void qry_Fh(char* comando, Runtime rt, FILE* respostaFile){
     }
 
 
-    listaStatic quadras = runTime_getLista(rt,L_QUADRAS);
+    treeRB  quadras = runTime_getLista(rt,L_QUADRAS);
 
 
     void *objeto = listaStatic_find(quadras, Quadra_comparadorID, cep);
@@ -1256,7 +1269,7 @@ void qry_Fh(char* comando, Runtime rt, FILE* respostaFile){
     };
 
 
-    listaStatic hidrantes = runTime_getLista(rt, L_HIDRANTES);
+    treeRB  hidrantes = runTime_getLista(rt, L_HIDRANTES);
     void** listHidrantes = malloc(sizeof(void*) * listaStatic_length(hidrantes));
 
     Point loc = Point_new(localX, localY);
@@ -1279,7 +1292,7 @@ void qry_Fh(char* comando, Runtime rt, FILE* respostaFile){
         fprintf(respostaFile, "Os %d hidrantes mais distantes são\n", k);
     }
 
-    listaStatic qry = runTime_getLista(rt, L_QUERY);
+    treeRB  qry = runTime_getLista(rt, L_QUERY);
 
     for(int i = ah->index-1; i >= ah->index - k; i--){
         double dis = getValueFromElement(listHidrantes[i]);
@@ -1320,7 +1333,7 @@ void qry_Fs(char* comando, Runtime rt, FILE* respostaFile){
 
 
 
-    listaStatic quadras = runTime_getLista(rt,L_QUADRAS);
+    treeRB  quadras = runTime_getLista(rt,L_QUADRAS);
 
 
     void *objeto = listaStatic_find(quadras, Quadra_comparadorID, cep);
@@ -1369,7 +1382,7 @@ void qry_Fs(char* comando, Runtime rt, FILE* respostaFile){
     };
 
 
-    listaStatic semaforos = runTime_getLista(rt, L_SEMAFOROS);
+    treeRB  semaforos = runTime_getLista(rt, L_SEMAFOROS);
     void** listSemaforos = malloc(sizeof(void*) * listaStatic_length(semaforos));
 
     Point loc = Point_new(localX, localY);
@@ -1387,7 +1400,7 @@ void qry_Fs(char* comando, Runtime rt, FILE* respostaFile){
     fprintf(respostaFile, "Os %d semáforos mais próximos são\n", k);
 
 
-    listaStatic qry = runTime_getLista(rt, L_QUERY);
+    treeRB  qry = runTime_getLista(rt, L_QUERY);
 
     for(int i = ah->index-1; i >= ah->index - k; i--){
         double dis = getValueFromElement(listSemaforos[i]);

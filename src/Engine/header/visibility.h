@@ -15,10 +15,6 @@
 #include "../../Elementos/SVG/header/Triangle.h"
 #include <math.h>
 
-/*
-    Processa a visibilidade, recebendo a lista de muros e de prédios, o x e y da bomba e retornando uma lista de triângulos para serem printados no SVG
-*/
-
 listaStatic processarVisibilidade(double x, double y, listaStatic muros, listaStatic predios);
 
 #endif

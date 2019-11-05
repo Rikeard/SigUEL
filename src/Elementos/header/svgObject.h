@@ -4,10 +4,6 @@
 #include "commonSVG.h"
 #include "../../Commons/header/cmm.h"
 
-/*
-    Objeto base que encapsula tudo que vai ser printado no SVG
-*/
-
 typedef void* svgObject;
 
 void svgObject_liberar(svgObject x);

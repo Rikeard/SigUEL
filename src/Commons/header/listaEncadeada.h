@@ -4,7 +4,7 @@
 #include "../../header/main.h"
 #include "../../Commons/header/cmm.h"
 
-typedef void* listaStatic;
+/* typedef void* listaStatic;
 typedef int indexPosition;
 
 listaStatic listaStatic_new(int tamanho);
@@ -12,11 +12,6 @@ listaStatic listaStatic_new(int tamanho);
 void listaStatic_add(listaStatic lista, void* elemento);
 
 void listaStatic_setSize(listaStatic lista, int tamanho);
-
-/*
-    Recebe uma função com a estrutura [function void (void* elemento, void* argumento)] e a executa passando por todos elementos da lista
-    Passando o elemento como void* elemento, e o argumento recebido na função como void* argumento
-*/
 
 void listaStatic_forEach(listaStatic lista, void* function, void* argumento);
 
@@ -45,5 +40,5 @@ indexPosition listaStatic_getNext(listaStatic lista, indexPosition i);
 
 bool listaStatic_removePosic(listaStatic lista, indexPosition i);
 
-indexPosition listaStatic_getFirst(listaStatic lista);
+indexPosition listaStatic_getFirst(listaStatic lista); */
 #endif

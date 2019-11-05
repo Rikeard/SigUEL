@@ -11,10 +11,6 @@
 #include "../Elementos/header/commonSVG.h"
 #include "fileHandler.h"
 
-/*
-    Inicia e fecha os arquivos SVG, colocando suas tags.
-    Também processa todo procedimento de adição de elementos ao SVG ao receber um svgObject
-*/
 
 void iniciarSVGFILE(char* path);
 void adicionarSVGFile(svgObject a, FILE* f);

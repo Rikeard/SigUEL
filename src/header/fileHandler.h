@@ -11,10 +11,6 @@ typedef enum fileTYPE{
     READONLY, WRITE, APPEND
 } fileTYPE;
 
-/*
-    o fileHandler é responsável pelo loop de executação para percorrer os arquivos .geo e .qry
-*/
-
 FILE* abrirArquivo(char* path, fileTYPE a);
 
 void processaComandoGeo(char* comando, Runtime rt);
