@@ -8,6 +8,7 @@
 #include <curses.h>
 #include "modules/util/files.h"
 #include "commands.h"
+#include "modules/aux/point.h"
 
 void startGui(Files *files, char *baseDir, char *entryFileName);
 

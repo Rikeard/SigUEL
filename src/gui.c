@@ -8,6 +8,16 @@ enum TREE_TYPE{
 	QUADRA, HIDRANTE, SEMAFORO, RADIOBASE, PREDIO, MURO
 }typedef TREE_TYPE;
 
+int digitNumber(double d){
+	int no = d;
+	int res = 0;
+	while(no!=0){
+    	no = no/10;
+    	res++;
+	}
+	return res;
+}
+
 void doneScreen(){
 	WINDOW* done = newwin(3, 59, 11,11);
 	box(done, 0,0);
@@ -51,6 +61,19 @@ int mvwprintw_center_custom(WINDOW* w, int linha, int custom, char* str){
 	mvwprintw(w, linha, COLS/2 - strlen(str)/2 - custom, "%s", str);	
 }
 
+void detailPopup(char* msg){
+	WINDOW* done = newwin(3, 59, 11,11);
+	box(done, 0,0);
+	wrefresh(done);
+	mvwprintw(done, 1, 59/2 - strlen(msg)/2, "%s", msg);	
+	wrefresh(done);	
+	getch();
+	werase(done);
+	wrefresh(done);
+	delwin(done);
+	refresh();
+}
+
 void cleanTree(WINDOW* output){
 	//19,79, 5, 1)
 	for(int y = 3; y < 18; y++){
@@ -82,19 +105,19 @@ void renderTreeLine(WINDOW* output, bool *isActive){
 				}
 
 				if(isActive[6]){
-					for(int i = 0; i < 7; i++){
-						mvwaddch(output, 11, i + 52, ACS_HLINE);
+					for(int i = 0; i < 9; i++){
+						mvwaddch(output, 11, i + 50, ACS_HLINE);
 					}
-					mvwaddch(output, 11, 51, ACS_ULCORNER);
+					mvwaddch(output, 11, 49, ACS_ULCORNER);
 					mvwaddch(output, 11, 59, ACS_LRCORNER);
 
 				}
 
 				if(isActive[5]){
-					for(int i = 0; i < 7; i++){
+					for(int i = 0; i < 9; i++){
 						mvwaddch(output, 11, i + 60, ACS_HLINE);
 					}
-					mvwaddch(output, 11, 67, ACS_URCORNER);
+					mvwaddch(output, 11, 69, ACS_URCORNER);
 					mvwaddch(output, 11, 59, ACS_LLCORNER);
 				}
 
@@ -122,20 +145,20 @@ void renderTreeLine(WINDOW* output, bool *isActive){
 			}
 
 			if(isActive[4]){
-				for(int i = 0; i < 7; i++){
-					mvwaddch(output, 11, i + 12, ACS_HLINE);
+				for(int i = 0; i < 9; i++){
+					mvwaddch(output, 11, i + 10, ACS_HLINE);
 				}
 
-				mvwaddch(output, 11, 11, ACS_ULCORNER);
+				mvwaddch(output, 11, 9, ACS_ULCORNER);
 				mvwaddch(output, 11, 19, ACS_LRCORNER);
 			}
 
 			if(isActive[3]){
-				for(int i = 0; i < 7; i++){
+				for(int i = 0; i < 9; i++){
 					mvwaddch(output, 11, i + 20, ACS_HLINE);
 				}
 				
-				mvwaddch(output, 11, 27, ACS_URCORNER);
+				mvwaddch(output, 11, 29, ACS_URCORNER);
 				mvwaddch(output, 11, 19, ACS_LLCORNER);
 			}
 
@@ -151,6 +174,17 @@ void renderTreeLine(WINDOW* output, bool *isActive){
 }
 
 char* getStringOf(RBTree tree, Node node, TREE_TYPE tipo){
+
+	Point p = RBTreeN_GetKey(tree, node);
+	char *pp = calloc(128, sizeof(char));
+	double x = Point_GetX(p), y = Point_GetY(p);
+	if((digitNumber(x) + digitNumber(y)) % 2 == 0)
+		sprintf(pp, "(%.0lf   %.0lf)", x, y);
+	else
+		sprintf(pp, "(%.0lf  %.0lf)", x, y);
+	return pp;
+
+
 	Wall wall;
 	char* s;
 	switch (tipo) {
@@ -219,8 +253,8 @@ void renderTree(Ponto *coord, WINDOW** nodes, char** chaves, bool *isRed, bool *
 /* 		str = calloc(10, sizeof(char));
 		sprintf(str, "%d", i); */
 		int strl = strlen(str);
-		if(strl < 10){
-			int x = (10-strl);
+		if(strl < 14){
+			int x = (14-strl);
 			x = (x % 2 == 0 ? x/2 : x/2 + 1);
 
 			mvwprintw(nodes[i], 1, 1, "%s", "         ");
@@ -351,23 +385,23 @@ char* waitCommand(){
 	init_pair(8, COLOR_BLUE, -1);
 	init_pair(9, COLOR_RED, -1);
 	
-	TREE_TYPE tipo = QUADRA;
+	TREE_TYPE tipo = PREDIO;
 
-	RBTree tree = getBlockTree();
+	RBTree tree = getBuildingTree();
 
 	Node root = RBTree_GetRoot(tree);
 
 	WINDOW* nodes[7];
 
-	int altura = 3, largura = 11;
+	int altura = 3, largura = 15;
 
-	Ponto coord[7] = {{9,35},  //Pai
-                      {12,55},  //Primeira Linha - Direita
-					  {12,15},  //Primeira Linha - Esquerda
-					  {17,23},  //Linha 2 - Bloco Esquerdo - Direita
-					  {17,7},   //Linha 2 - Bloco Esquerdo - Esquerdo
-					  {17,63},  //Linha 2 - Bloco Direito - Direita
-					  {17, 47}}; //Linha 2 - Bloco Direito - Esquerda
+	Ponto coord[7] = {{9,(80/2) - (largura/2)},  //Pai
+                      {12, 40 + 40/2 -  (largura/2)},  //Primeira Linha - Direita
+					  {12, 40/2 - (largura/2)},  //Primeira Linha - Esquerda
+					  {17, (40/2) + (20/2) - (largura/2)},  //Linha 2 - Bloco Esquerdo - Direita
+					  {17, (20/2) - (largura/2)},   //Linha 2 - Bloco Esquerdo - Esquerdo
+					  {17, 40 + (40/2) + (20/2) - (largura/2)},  //Linha 2 - Bloco Direito - Direita
+					  {17, 40 + (20/2) - (largura/2)}}; //Linha 2 - Bloco Direito - Esquerda
 
 	for(int i = 0; i < 7; i++)
 		nodes[i] = newwin(altura, largura, coord[i].x, coord[i].y);
@@ -434,6 +468,8 @@ char* waitCommand(){
 			}
 		}else if(ch == 27){
 			break;
+		}else if(ch == 10){
+			detailPopup(chaves[selected]);
 		}
 
 		cleanTree(output);
