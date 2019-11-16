@@ -1,116 +1,196 @@
-#include "header/geometry.h"
-#include "header/main.h"
-#include "header/argHandler.h"
-#include "header/fileHandler.h"
-#include "header/fileMaker.h"
-#include "sys/time.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-long long current_timestamp() {
-    struct timeval te; 
-    gettimeofday(&te, NULL); // get current time
-    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
-    //printf("milliseconds: %lld\n", milliseconds);
-    return milliseconds;
+#include "modules/util/file_util.h"
+#include "commands.h"
+#include "interaction.h"
+#include "modules/sig/object.h"
+#include "modules/data_structures/static_list.h"
+#include "modules/util/files.h"
+
+int main(int argc, char *argv[]) {
+
+	Files files = Files_Create();
+
+	bool interactive = false;
+
+	char *baseDir = NULL;
+	char *entryFileName = NULL;
+	char *queryFileName = NULL;
+	char *outputDir = NULL;
+	char *outputSVGFileName = NULL;
+	char *ecFileName = NULL;
+	char *pmFileName = NULL;
+
+	FILE *entryFile = NULL;
+	FILE *outputSVGFile = NULL;
+	FILE *ecFile = NULL;
+	FILE *pmFile = NULL;
+
+	// Processamento dos argumentos passados ao programa
+	for (int i = 1; i < argc; i++) {
+		if (strcmp("-e", argv[i]) == 0) {
+			if (++i >= argc) {
+				printf("O argumento '-e' requer um diretório!\n");
+				return 1;
+			}
+			if (baseDir != NULL) {
+				free(baseDir);
+			}
+			baseDir = malloc((strlen(argv[i]) + 1) * sizeof(char));
+			strcpy(baseDir, argv[i]);
+		} else if (strcmp("-f", argv[i]) == 0) {
+			if (++i >= argc) {
+				printf("O argumento '-f' requer o nome de um arquivo!\n");
+				return 1;
+			}
+			if (entryFileName != NULL) {
+				free(entryFileName);
+			}
+			entryFileName = malloc((strlen(argv[i]) + 1) * sizeof(char));
+			strcpy(entryFileName, argv[i]);
+		} else if (strcmp("-q", argv[i]) == 0) {
+			if (++i >= argc) {
+				printf("O argumento '-q' requer o nome de um arquivo!\n");
+				return 1;
+			}
+			if (queryFileName != NULL) {
+				free(queryFileName);
+			}
+			queryFileName = malloc((strlen(argv[i]) + 1) * sizeof(char));
+			strcpy(queryFileName, argv[i]);
+		} else if (strcmp("-o", argv[i]) == 0) {
+			if (++i >= argc) {
+				printf("O argumento '-o' requer um diretório!\n");
+				return 1;
+			}
+			if (outputDir != NULL) {
+				free(outputDir);
+			}
+			outputDir = malloc((strlen(argv[i]) + 1) * sizeof(char));
+			strcpy(outputDir, argv[i]);
+		} else if (strcmp("-ec", argv[i]) == 0) {
+			if (++i >= argc) {
+				printf("O argumento '-ec' requer o nome de um arquivo!\n");
+				return 1;
+			}
+			if (ecFileName != NULL) {
+				free(ecFileName);
+			}
+			ecFileName = malloc((strlen(argv[i]) + 1) * sizeof(char));
+			strcpy(ecFileName, argv[i]);
+		} else if (strcmp("-pm", argv[i]) == 0) {
+			if (++i >= argc) {
+				printf("O argumento '-pm' requer o nome de um arquivo!\n");
+				return 1;
+			}
+			if (pmFileName != NULL) {
+				free(pmFileName);
+			}
+			pmFileName = malloc((strlen(argv[i]) + 1) * sizeof(char));
+			strcpy(pmFileName, argv[i]);
+		} else if (strcmp("-i", argv[i]) == 0) {
+			interactive = true;
+		} else {
+			printf("Comando não reconhecido: '%s'\n", argv[i]);
+			return 1;
+		}
+	}
+
+	// Verificação se os argumentos obrigatórios foram passados
+	if (entryFileName == NULL) {
+		printf("O argumento '-f' é obrigatório!\n");
+		return 1;
+	}
+	if (outputDir == NULL) {
+		printf("O argumento '-o' é obrigatório!\n");
+		return 1;
+	}
+	Files_SetOutputDir(files, outputDir);
+
+	outputSVGFileName = malloc((strlen(entryFileName) + 4) * sizeof(char));
+	strcpy(outputSVGFileName, entryFileName);
+	changeExtension(outputSVGFileName, "svg");
+
+	// Abertura do arquivo de entrada padrão
+	entryFile = openFile(baseDir, entryFileName, "r");
+	if (entryFile == NULL) {
+		return 1;
+	}
+	Files_SetEntryFile(files, entryFile);
+
+	// Abertura dos arquivos referentes à consulta
+	if (queryFileName != NULL) {
+		if (!Files_OpenQueryFiles(files, baseDir, entryFileName, queryFileName))
+			return 1;
+	}
+
+	// Abertura do arquivo de saída padrão
+	outputSVGFile = openFile(outputDir, outputSVGFileName, "w");
+	if (outputSVGFile == NULL) {
+		return 1;
+	}
+	Files_SetOutputSVGFile(files, outputSVGFile);
+
+	if (ecFileName != NULL) {
+		ecFile = openFile(baseDir, ecFileName, "r");
+		if (ecFile == NULL)
+			return 1;
+		Files_SetEcFile(files, ecFile);
+	}
+
+	if (pmFileName != NULL) {
+		pmFile = openFile(baseDir, pmFileName, "r");
+		if (pmFile == NULL)
+			return 1;
+		Files_SetPmFile(files, pmFile);
+	}
+
+	// Processar comandos do .geo
+	/*if (!processGeometry(entryFile, outputSVGFile, outputQrySVGFile, objList))
+		return 1;
+
+	// Processar comandos do .qry, se houver
+	if (queryFile != NULL)
+		if (!processQuery(queryFile, outputQrySVGFile, outputTXTFile, objList, outputDir, outputQrySVGFileName))
+			return 1;*/
+
+	//processAll(entryFile, outputSVGFile, outputQrySVGFile, queryFile, outputTXTFile, outputDir, outputQrySVGFileName);
+	initializeTrees();
+    initializeTables();
+	
+	processAll(files);
+
+	if (interactive) {
+		startInteraction(files, baseDir, entryFileName);
+	}
+
+	destroyTables();
+    destroyTrees();
+
+	// Limpeza
+
+	fclose(entryFile);
+	fclose(outputSVGFile);
+	if (queryFileName != NULL) {
+		free(queryFileName);
+	}
+	if (baseDir != NULL)
+		free(baseDir);
+	free(outputSVGFileName);
+	free(entryFileName);
+	if (outputDir != NULL)
+		free(outputDir);
+	if (ecFile != NULL) {
+		free(ecFileName);
+		fclose(ecFile);
+	}
+	if (pmFile != NULL) {
+		free(pmFileName);
+		fclose(pmFile);
+	}
+
+	Files_Destroy(files);
+	//StList_Destroy(objList, Object_Destroy);
 }
-
-int main(int argc, char *argv[]){
-    defaultInit();
-
-    long long base, last;
-
-    char* diretorioEntrada = NULL, *diretorioSaida = NULL, *arquivoEntrada = NULL, *arquivoConsulta = NULL;
-    bool processarQry = false, processarGeo = true;
-
-    //Processamento dos argumento e padronização dos diretórios terminando em /
-    argumentoInicial(argc, argv, &diretorioEntrada, &diretorioSaida, &arquivoEntrada, &arquivoConsulta);
-    if(arquivoConsulta != NULL)
-        processarQry = true;
-
-    if(arquivoEntrada == NULL)
-        processarGeo = false;
-    
-    Runtime raiz = runTime_new();
-    
-    {
-        char* fill = calloc(10, sizeof(char));
-        char* borda = calloc(10, sizeof(char));
-        double espessura = -1;
-        sprintf(fill, "blue"); 
-        sprintf(borda, "white");
-        runTime_setStyle(raiz, S_PREDIO, fill, borda, NULL, 1);
-        borda = calloc(10, sizeof(char));
-        fill = calloc(10, sizeof(char));
-        sprintf(fill, "red");
-        sprintf(borda, "red"); 
-        runTime_setStyle(raiz, S_MURO, fill, borda, NULL, 3);
-    }
-
-    //Obtem os nomes dos arquivos passados como .qry e .geo (Sem paths e extensão);
-    char *nomeEntrada = obterNome(arquivoEntrada), *nomeConsulta = obterNome(arquivoConsulta);
-    printf("\nNome de entrada: %s\nNome de consulta: %s\n", nomeEntrada, nomeConsulta);
-
-    printf("\nProcessamento interno:\n");
-
-    //Monta os caminhos de diretório e arquivos usados para processar o .geo
-    char* fullpathGEO = NULL, *fullpathSVG = NULL;
-    if(processarGeo)
-        montagemDePathGEO(diretorioEntrada, diretorioSaida, arquivoEntrada, nomeEntrada, &fullpathGEO, &fullpathSVG); 
-
-    //Monta os caminhos de diretório e arquivos usados para processar o .qry
-     char* fullpathQRY = NULL, *fullpathSVG2 = NULL, *fullpathTXT = NULL, *fullpathBB = NULL;   
-    if(processarQry)
-        montagemDePathQRY(diretorioEntrada, diretorioSaida, arquivoConsulta, nomeEntrada, nomeConsulta, &fullpathQRY, &fullpathSVG2, &fullpathTXT, &fullpathBB);
-    else
-        printf("\n    Processamento de .qry não iniciado/solicitado\n\n");
-    
-
-
-    printf("\nIniciando processamento:\n");
-
-    base = current_timestamp();
-    //Inicia o processamento .geo
-    FILE* f = abrirArquivo(fullpathGEO, READONLY);
-    handleGeo(f, raiz, fullpathSVG);
-    fclose(f);
-
-    printf("    Processamento .geo concluído\n");
-    last = current_timestamp();
-    printf("    Concluído em %lldms\n\n", last-base);
-    base = current_timestamp();
-
-    //Verifica se foi o programa possui um arquivo .qry válido para iniciar o processamento do mesmo.
-    if(processarQry){
-        FILE* f2 = abrirArquivo(fullpathQRY, READONLY);
-        handleQry(f2, raiz, fullpathSVG2, fullpathTXT, fullpathBB);
-        fclose(f2);
-        printf("    Processamento .qry concluído\n");
-        last = current_timestamp();
-        printf("    Concluído em %lldms\n\n", last-base);
-    }
-   
-    printf("    Processando desalocação de memória\n\n");
-
-    //Desalocação de memória do programa
-
-    free(diretorioEntrada);
-    free(diretorioSaida);
-    free(arquivoEntrada);
-    free(arquivoConsulta);
-    free(nomeEntrada);
-    free(nomeConsulta);
-    free(fullpathGEO);
-    free(fullpathSVG);
-    free(fullpathQRY);
-    free(fullpathSVG2);
-    free(fullpathTXT);
-    free(fullpathBB);
-
-    reportSucess(__func__);
-    return 0;
-
-}
-
-
-
-
-

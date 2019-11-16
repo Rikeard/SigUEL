@@ -1,29 +1,109 @@
-OBJS = $(shell find . -name '*.c')
-
-MM:= ./main.c
-MV:= 
-REP:=  
-
-OBJM=$(subst $(MV), $(REP), $(OBJS))
-OBJV=$(subst $(MM), $(REP), $(OBJS))
-
 CC = gcc
-COMPILER_FLAGS = -std=c99 -fstack-protector-all
-LINKER_FLAGS = -lm
-OBJ_NAME = siguel
+# TODO: remover .g
+COMPILER_FLAGS = -std=c99 -fstack-protector-all -g
+LINKER_FLAGS = -lm -lncurses
+EXEC_NAME = siguel
+ODIR = obj
+OBJECTS = main.o distance.o heapsort.o geometry.o object.o circle.o rectangle.o block.o equipment.o \
+    segment.o vertex.o building.o wall.o file_util.o static_list.o svg.o commands.o query.o data.o \
+	redblack_tree.o hash_table.o point.o text.o files.o commerce.o commerce_type.o \
+	person.o interaction.o polygon.o gui.o
+OBJ = $(patsubst %,$(ODIR)/%,$(OBJECTS))
 
-siguel: $(OBJM)
-	rm -f siguel
-	$(CC) $(OBJM) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(OBJ_NAME) 
+all: $(EXEC_NAME)
 
-visibility: $(OBJV)
-	rm -f visibility
-	$(CC) $(OBJV) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o visibility
+$(EXEC_NAME): $(OBJ)
+	$(CC) $(OBJ) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(EXEC_NAME) -Wall
 
-all: $(OBJS)
-	rm -f siguel
-	$(CC) $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o siguel
+$(ODIR)/main.o: main.c modules/util/file_util.h modules/sig/object.h commands.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/distance.o: modules/aux/distance.c modules/aux/distance.h modules/sig/equipment.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/segment.o: modules/aux/segment.c modules/aux/segment.h modules/aux/vertex.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/vertex.o: modules/aux/vertex.c modules/aux/vertex.h modules/aux/segment.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/point.o: modules/aux/point.c modules/aux/point.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/heapsort.o: modules/aux/heapsort.c modules/aux/heapsort.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/geometry.o: modules/sig/geometry.c modules/sig/geometry.h modules/sig/object.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/object.o: modules/sig/object.c modules/sig/object.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/circle.o: modules/sig/circle.c modules/sig/circle.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/rectangle.o: modules/sig/rectangle.c modules/sig/rectangle.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/text.o: modules/sig/text.c modules/sig/text.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/block.o: modules/sig/block.c modules/sig/block.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/equipment.o: modules/sig/equipment.c modules/sig/equipment.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/building.o: modules/sig/building.c modules/sig/building.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/wall.o: modules/sig/wall.c modules/sig/wall.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/file_util.o: modules/util/file_util.c modules/util/file_util.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/static_list.o: modules/data_structures/static_list.c modules/data_structures/static_list.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/svg.o: modules/util/svg.c modules/util/svg.h modules/sig/object.h modules/sig/circle.h modules/sig/rectangle.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/commands.o: commands.c commands.h modules/util/file_util.h modules/data_structures/static_list.h modules/util/svg.h modules/sig/geometry.h modules/sig/object.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/query.o: query.c query.h modules/data_structures/static_list.h modules/util/svg.h modules/sig/geometry.h modules/sig/object.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/data.o: data.c data.h modules/data_structures/redblack_tree.h modules/data_structures/hash_table.h modules/aux/point.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/redblack_tree.o: modules/data_structures/redblack_tree.c modules/data_structures/redblack_tree.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/hash_table.o: modules/data_structures/hash_table.c modules/data_structures/hash_table.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/files.o: modules/util/files.c modules/util/files.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/commerce_type.o: modules/sig/commerce_type.c modules/sig/commerce_type.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/commerce.o: modules/sig/commerce.c modules/sig/commerce.h modules/sig/building.h modules/sig/commerce_type.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/person.o: modules/sig/person.c modules/sig/person.h modules/sig/building.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/interaction.o: interaction.c interaction.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/polygon.o: modules/aux/polygon.c modules/aux/polygon.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/gui.o: gui.c gui.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
 clean:
-	rm -f siguel
-
+	rm -rf obj/*.o
