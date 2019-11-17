@@ -82,9 +82,9 @@ char* getValueOf(RBTree tree, Node node, TREE_TYPE tipo){
 void doneScreen(bool sucess, char* msg){
 	WINDOW* done;
 	if(msg == NULL){
-		done = newwin(3, 59, 11,11);
+		done = newwin(3, 60, 24/2 - 3/2, 79/2 - 59/2);
 	}else{
-		done = newwin(4, 59, 11,11);
+		done = newwin(4, 60, 24/2 - 4/2, 79/2 - 59/2);
 	}
 
 	if(!sucess){
@@ -100,13 +100,13 @@ void doneScreen(bool sucess, char* msg){
 	char* s = "Concluído!";
 	char* e = "Erro!";
 	if(sucess){
-		mvwprintw(done, 1, 59/2 - strlen(s)/2, "%s", s);
+		mvwprintw(done, 1, 60/2 - strlen(s)/2, "%s", s);
 	}else{
-		mvwprintw(done, 1, 59/2 - strlen(e)/2, "%s", e);
+		mvwprintw(done, 1, 60/2 - strlen(e)/2, "%s", e);
 	}
 
 	if(msg != NULL)
-		mvwprintw(done, 2, 59/2 - strlen(msg)/2, "%s", msg);
+		mvwprintw(done, 2, 60/2 - strlen(msg)/2, "%s", msg);
 
 	wrefresh(done);	
 	sleep(3);
@@ -222,6 +222,8 @@ void detailPopup(RBTree tree, Node node, TREE_TYPE tipo){
 	wattron(done, A_BOLD);
 	mvwprintw(done, 1, 59/2 - strlen(keyAtual)/2, "%s", keyAtual);
 
+	free(keyAtual);
+
 	init_pair(25, COLOR_BLACK, -1);
 	init_pair(26, COLOR_RED, -1);
 
@@ -241,6 +243,8 @@ void detailPopup(RBTree tree, Node node, TREE_TYPE tipo){
 	wattroff(done, A_BOLD);
 	mvwprintw(done, 3, kC_meio + 15, "%s", ky);
 
+	free(ky);
+
 	wattron(done, A_BOLD);
 	char* valueOf = getValueOf(tree, node, tipo);
 	int kC_down = 59/2 - (strlen(valueOf)+8)/2;
@@ -248,7 +252,7 @@ void detailPopup(RBTree tree, Node node, TREE_TYPE tipo){
 	wattroff(done, A_BOLD);
 	mvwprintw(done, 4, kC_down + 8, "%s", valueOf);
 
-
+	free(valueOf);
 
 	wrefresh(done);	
 	getch();
@@ -355,8 +359,10 @@ void renderTreeLine(WINDOW* output, bool *isActive){
 	wrefresh(output);
 }
 
-void setNodeData(RBTree arvore, Node node, bool* isActive, bool* isRed, char** chaves, Node* nodeList, int index, TREE_TYPE tipo){
+void setNodeData(RBTree arvore, Node node, bool* isActive, bool* isRed, char** chaves, Node *nodeList, int index, TREE_TYPE tipo){
 	isActive[index] = true;
+/* 	if(chaves[index] != NULL)
+		free(chaves[index]); */
 	chaves[index] = getKeyOf(arvore, node, tipo);
 	isRed[index] = RBTreeN_GetColor(node) == RED;
 	nodeList[index] = node;
@@ -457,7 +463,7 @@ int processInputMovement(int atual, int read, bool* isActive){
 
 }
 
-void loadTreeData(RBTree tree, Node root, bool isActive[7], bool isRed[7], char* chaves[7], Node* nodeList[7], TREE_TYPE tipo){
+void loadTreeData(RBTree tree, Node root, bool isActive[7], bool isRed[7], char* chaves[7], Node nodeList[7], TREE_TYPE tipo){
 
 	for(int i = 0; i < 7; i++){
 		isActive[i] = false;
@@ -575,7 +581,7 @@ void navTree(TREE_TYPE tipo){
 	for(int i = 0; i < 7; i++)
 		nodes[i] = newwin(altura, largura, coord[i].x, coord[i].y);
 	
-	char* chaves[7];
+	char* chaves[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 	bool isRed[7];
 	Node nodeList[7];
 	bool isActive[7];
@@ -687,6 +693,7 @@ void navTree(TREE_TYPE tipo){
 
 	for(int i = 0; i < 7; i++){
 		cleanDelete(nodes[i]);
+		free(chaves[i]);
 	}
 	cleanDelete(output);
 
@@ -723,7 +730,6 @@ void processCommand(char* buffer, Files *files, char *baseDir, char *entryFileNa
 	init_pair(5,  COLOR_GREEN, -1);
 	wattron(processamento, COLOR_PAIR(5));
 	wrefresh(processamento);
-
 
 	char comando[16];
 	sscanf(buffer, "%15s", comando);
@@ -780,6 +786,11 @@ void startGui(Files *files, char *baseDir, char *entryFileName) {
 	exit(EXIT_FAILURE);
     }
 
+	//Gambiarra pra dar supress no pError
+
+	fclose(stderr);
+  	stderr = fopen("/dev/null","w");
+
     start_color();                    
 	use_default_colors();
 	init_pair(16,  -1,     -1);
@@ -812,6 +823,8 @@ void startGui(Files *files, char *baseDir, char *entryFileName) {
 		str = waitCommand();
 
 	}
+
+	free(str);
 
 	cleanDelete(mainwin);
     endwin();
