@@ -18,40 +18,192 @@ int digitNumber(double d){
 	return res;
 }
 
-void doneScreen(){
-	WINDOW* done = newwin(3, 59, 11,11);
-	box(done, 0,0);
+void cleanDelete(WINDOW* output){
+	werase(output);
+	wrefresh(output);
+	delwin(output);
+}
+
+char* getKeyOf(RBTree tree, Node node, TREE_TYPE tipo){
+	Point p = RBTreeN_GetKey(tree, node);
+	char *pp = calloc(128, sizeof(char));
+	double x = Point_GetX(p), y = Point_GetY(p);
+	if((digitNumber(x) + digitNumber(y)) % 2 == 0)
+		sprintf(pp, "(%.0lf   %.0lf)", x, y);
+	else
+		sprintf(pp, "(%.0lf  %.0lf)", x, y);
+	return pp;
+}
+
+char* getFullKeyOf(RBTree tree, Node node, TREE_TYPE tipo){
+
+	Point p = RBTreeN_GetKey(tree, node);
+	char *pp = calloc(128, sizeof(char));
+	double x = Point_GetX(p), y = Point_GetY(p);
+	sprintf(pp, "(%.10lf,  %.10lf)", x, y);
+	return pp;
+}
+
+char* getValueOf(RBTree tree, Node node, TREE_TYPE tipo){
+
+	char *s = calloc(128, sizeof(char));
+
+	Wall wall;
+	switch (tipo) {
+		case QUADRA:
+			sprintf(s, "%s",Block_GetCep(RBTreeN_GetValue(tree, node)));
+			break;
+		case HIDRANTE:
+			sprintf(s, "%s",Equip_GetID(RBTreeN_GetValue(tree, node)));
+			break;
+		case SEMAFORO:
+			sprintf(s, "%s",Equip_GetID(RBTreeN_GetValue(tree, node)));
+			break;
+		case RADIOBASE:
+			sprintf(s, "%s",Equip_GetID(RBTreeN_GetValue(tree, node)));
+			break;
+		case PREDIO:
+			sprintf(s, "%s",Building_GetKey(RBTreeN_GetValue(tree, node)));
+			break;
+		case MURO:
+			wall = RBTreeN_GetValue(tree, node);
+			sprintf(s, "(%.3lf, %.3lf) (%.3lf, %.3lf)",
+					Wall_GetX1(wall), Wall_GetY1(wall),
+					Wall_GetX2(wall), Wall_GetY2(wall));
+			break;
+		default:
+			sprintf(s, "%s", "Unhandled Type");
+			break;
+	}
+
+	return s;
+}
+
+void doneScreen(bool sucess, char* msg){
+	WINDOW* done;
+	if(msg == NULL){
+		done = newwin(3, 59, 11,11);
+	}else{
+		done = newwin(4, 59, 11,11);
+	}
+
+	if(!sucess){
+		init_pair(67, COLOR_RED, -1);
+		wattron(done, COLOR_PAIR(67));
+		box(done, 0,0);
+		wattroff(done, COLOR_PAIR(67));
+	}else{
+		box(done, 0,0);
+	}
+
 	wrefresh(done);
-	mvwprintw(done, 1, 23,"Concluído!");
+	char* s = "Concluído!";
+	char* e = "Erro!";
+	if(sucess){
+		mvwprintw(done, 1, 59/2 - strlen(s)/2, "%s", s);
+	}else{
+		mvwprintw(done, 1, 59/2 - strlen(e)/2, "%s", e);
+	}
+
+	if(msg != NULL)
+		mvwprintw(done, 2, 59/2 - strlen(msg)/2, "%s", msg);
+
 	wrefresh(done);	
 	sleep(3);
-	werase(done);
-	wrefresh(done);
-	delwin(done);
+	cleanDelete(done);
 	refresh();
 }
 
-/* char* waitCommand(){
+TREE_TYPE menuTipo(){
+	WINDOW* typew = newwin(10, 20, 24/2 - 10/2, 79/2 - 20/2);
+
+	box(typew, 0,0);
+	wrefresh(typew);
+
+	wattron(typew, A_BOLD);
+	mvwprintw(typew, 1, 1, " Selecione o tipo ");
+	wattroff(typew, A_BOLD);
+
+	int selected = 0;
+	char* tipos[6] = {"Quadras", "Hidrantes", "Semaforos", "Radio-Base", "Predio", "Muro"};
+	int ch = 0;
+
+	noecho();
+
+	do{
+		for(int i = 0; i < 6; i++){
+			if(selected == i)
+				wattron(typew, A_STANDOUT);
+			mvwprintw(typew,i+3, 10 - strlen(tipos[i])/2, "%s", tipos[i]);
+			if(selected == i)
+				wattroff(typew, A_STANDOUT);
+		}
+		wrefresh(typew);
+		ch = getch();
+		if(ch == 10)
+			break;
+
+		if(ch == '\033'){
+			if(getch() != '[')
+				continue;
+
+			ch = getch();
+			if(ch == 'A'){
+				if(selected-1 >= 0)
+					selected--;
+			}else if(ch == 'B'){
+				if(selected+1 <= 5)
+					selected++;
+			}
+		}
+
+	}while(ch != 10);
+
+	cleanDelete(typew);
+	refresh();
+
+	return selected;
+}
+
+char* waitCommand(){
 	curs_set(1);
-	WINDOW* output = newwin(4,79, 5, 1);
-	mvwprintw(output, 1, 1, "Insira o comando de entrada");
+	echo();
+	WINDOW* output = newwin(3,79, 5, 1);
 	refresh();
 	box(output, 0, 0);
 	wrefresh(output);
+		mvwprintw(output, 0, 1, "Insira o comando de entrada");
+		wrefresh(output);
 
-	move(7,2);
+	WINDOW* help = newwin(15, 79, 8, 1);
+	wrefresh(help);
+
+	wattron(help, A_ITALIC );
+	mvwprintw(help, 1,1, "Lista de comandos: ");
+	wattroff(help, A_ITALIC);
+	mvwprintw(help, 1,22, "q <arquivo de entrada.qry> ");
+	mvwprintw(help, 2,22, "dmprbt <tipo> <arquivo de destino> ");
+	mvwprintw(help, 3,22 + 7, "tipos: q (quadras)");
+	mvwprintw(help, 4,22 + 7 + 7, "h (hidrantes)");
+	mvwprintw(help, 5,22 + 7 + 7, "s (semaforos)");
+	mvwprintw(help, 6,22 + 7 + 7, "t (torres de radio)");
+	mvwprintw(help, 7,22 + 7 + 7, "p (prédios)");
+	mvwprintw(help, 8,22 + 7 + 7, "m (muros)");
+	mvwprintw(help, 9,22, "nav [entrada interativa]");
+	mvwprintw(help, 10,22, "sai [finaliza a execução]");
+	wrefresh(help);
+
+
+
+	move(6,2);
 	char *str = calloc(120, sizeof(char));
 	getstr(str);
-	mvwprintw(output, 2, 1, "%70s", " ");
-	move(7,2);
-	wrefresh(output);
-	refresh();
 	
-	delwin(output);
+	cleanDelete(output);
 	curs_set(0);
 	refresh();
 	return str;
-} */
+}
 
 int mvwprintw_center(WINDOW* w, int linha, char* str){
 	mvwprintw(w, linha, COLS/2 - strlen(str)/2, "%s", str);	
@@ -61,16 +213,46 @@ int mvwprintw_center_custom(WINDOW* w, int linha, int custom, char* str){
 	mvwprintw(w, linha, COLS/2 - strlen(str)/2 - custom, "%s", str);	
 }
 
-void detailPopup(char* msg){
-	WINDOW* done = newwin(3, 59, 11,11);
+void detailPopup(RBTree tree, Node node, TREE_TYPE tipo){
+	WINDOW* done = newwin(6, 59, 11,11);
 	box(done, 0,0);
 	wrefresh(done);
-	mvwprintw(done, 1, 59/2 - strlen(msg)/2, "%s", msg);	
+
+	char* keyAtual = getKeyOf(tree, node, tipo);
+	wattron(done, A_BOLD);
+	mvwprintw(done, 1, 59/2 - strlen(keyAtual)/2, "%s", keyAtual);
+
+	init_pair(25, COLOR_BLACK, -1);
+	init_pair(26, COLOR_RED, -1);
+
+	if(RBTreeN_GetColor(node) == RED){
+		wattron(done, COLOR_PAIR(26));
+		mvwprintw(done, 2, 59/2 - 14/2, "Node Vermelho");
+		wattroff(done, COLOR_PAIR(26));
+	}else{
+		wattron(done, A_DIM);
+		mvwprintw(done, 2, 59/2 - 11/2, "Node Preto");
+		wattroff(done, A_DIM);
+	}
+
+	char* ky = getFullKeyOf(tree, node, tipo);
+	int kC_meio = 59/2 - (strlen(ky)+15)/2;
+	mvwprintw(done, 3, kC_meio, "Key completa: ");
+	wattroff(done, A_BOLD);
+	mvwprintw(done, 3, kC_meio + 15, "%s", ky);
+
+	wattron(done, A_BOLD);
+	char* valueOf = getValueOf(tree, node, tipo);
+	int kC_down = 59/2 - (strlen(valueOf)+8)/2;
+	mvwprintw(done, 4, kC_down, "Valor: ");
+	wattroff(done, A_BOLD);
+	mvwprintw(done, 4, kC_down + 8, "%s", valueOf);
+
+
+
 	wrefresh(done);	
 	getch();
-	werase(done);
-	wrefresh(done);
-	delwin(done);
+	cleanDelete(done);
 	refresh();
 }
 
@@ -173,56 +355,12 @@ void renderTreeLine(WINDOW* output, bool *isActive){
 	wrefresh(output);
 }
 
-char* getStringOf(RBTree tree, Node node, TREE_TYPE tipo){
-
-	Point p = RBTreeN_GetKey(tree, node);
-	char *pp = calloc(128, sizeof(char));
-	double x = Point_GetX(p), y = Point_GetY(p);
-	if((digitNumber(x) + digitNumber(y)) % 2 == 0)
-		sprintf(pp, "(%.0lf   %.0lf)", x, y);
-	else
-		sprintf(pp, "(%.0lf  %.0lf)", x, y);
-	return pp;
-
-
-	Wall wall;
-	char* s;
-	switch (tipo) {
-		case QUADRA:
-			return Block_GetCep(RBTreeN_GetValue(tree, node));
-			break;
-		case HIDRANTE:
-			return Equip_GetID(RBTreeN_GetValue(tree, node));
-			break;
-		case SEMAFORO:
-			return Equip_GetID(RBTreeN_GetValue(tree, node));
-			break;
-		case RADIOBASE:
-			return Equip_GetID(RBTreeN_GetValue(tree, node));
-			break;
-		case PREDIO:
-			return Building_GetKey(RBTreeN_GetValue(tree, node));
-			break;
-		case MURO:
-			wall = RBTreeN_GetValue(tree, node);
-			s = calloc(128, sizeof(char));
-			sprintf(s, "(%.1lf, %.2lf) (%.2lf, %.2lf)",
-					Wall_GetX1(wall), Wall_GetY1(wall),
-					Wall_GetX2(wall), Wall_GetY2(wall));
-			return s;
-			break;
-		default:
-			return NULL;
-	}
-}
-
 void setNodeData(RBTree arvore, Node node, bool* isActive, bool* isRed, char** chaves, Node* nodeList, int index, TREE_TYPE tipo){
 	isActive[index] = true;
-	chaves[index] = getStringOf(arvore, node, tipo);
+	chaves[index] = getKeyOf(arvore, node, tipo);
 	isRed[index] = RBTreeN_GetColor(node) == RED;
 	nodeList[index] = node;
 }
-
 
 void renderTree(Ponto *coord, WINDOW** nodes, char** chaves, bool *isRed, bool *isActive, int selected){
 	for(int i = 0; i < 7; i++){
@@ -233,7 +371,7 @@ void renderTree(Ponto *coord, WINDOW** nodes, char** chaves, bool *isRed, bool *
 		}
 
 		if(!isRed[i]){
-			wattron(nodes[i], COLOR_PAIR(8));
+			wattron(nodes[i], A_DIM);
 		}else{
 			wattron(nodes[i], COLOR_PAIR(9));
 		}
@@ -244,26 +382,26 @@ void renderTree(Ponto *coord, WINDOW** nodes, char** chaves, bool *isRed, bool *
 		box(nodes[i], 0, 0);
 		wrefresh(nodes[i]);
 		if(!isRed[i]){
-			wattroff(nodes[i], COLOR_PAIR(8));
+			wattroff(nodes[i],  A_DIM);
 		}else{
 			wattroff(nodes[i], COLOR_PAIR(9));
 		}
 
 		char* str = chaves[i];
-/* 		str = calloc(10, sizeof(char));
-		sprintf(str, "%d", i); */
+ 		//str = calloc(10, sizeof(char));
+		//sprintf(str, "%d", i); 
 		int strl = strlen(str);
 		if(strl < 14){
 			int x = (14-strl);
 			x = (x % 2 == 0 ? x/2 : x/2 + 1);
 
-			mvwprintw(nodes[i], 1, 1, "%s", "         ");
+			mvwprintw(nodes[i], 1, 1, "%s", "             ");
 			//Completa com espaço em branco 
 			//depois ele da repaint com o texto por cima
 			
 			mvwprintw(nodes[i], 1, x, "%s", str);
 		}else{
-			mvwprintw(nodes[i], 1, 1, "%.7s..", str);
+			mvwprintw(nodes[i], 1, 1, "%.12s..", str);
 		}
 		wrefresh(nodes[i]);
 
@@ -364,14 +502,48 @@ void loadTreeData(RBTree tree, Node root, bool isActive[7], bool isRed[7], char*
 	}
 }
 
-char* waitCommand(){
+void navTree(TREE_TYPE tipo){
 	curs_set(0);
 	noecho();
+
+	char* sub2;
+
+	RBTree tree; 
+	
+	switch(tipo){
+		case HIDRANTE:
+			tree = getHydTree();
+			sub2 = "Arvore de Hidrantes";
+			break;
+		case QUADRA:
+			tree = getBlockTree();
+			sub2 = "Arvore de Quadras";
+			break;
+		case SEMAFORO:
+			tree = getTLightTree();
+			sub2 = "Arvore de Semáforos";
+			break;
+		case RADIOBASE:
+			tree = getCTowerTree();
+			sub2 = "Arvore de Radio-Base";
+			break;
+		case PREDIO:
+			tree = getBuildingTree();
+			sub2 = "Arvore de Prédios";
+			break;
+		case MURO:
+			tree = getWallTree();
+			sub2 = "Arvore de Muros";
+			break;
+		default:
+			tree = getBlockTree();
+			sub2 = "Default Tree - Quadras";
+			break;
+	}
 
 	WINDOW* output = newwin(19,79, 5, 1);
 	wattron(output, A_BOLD);
 	char* sub1 = "Navegação Interativa";
-	char* sub2 = "Arvore XSD";
 	mvwprintw_center(output, 1, sub1);
 	wattroff(output, A_BOLD);
 	wattron(output, A_DIM);
@@ -384,10 +556,7 @@ char* waitCommand(){
 	init_pair(4, COLOR_GREEN, -1);
 	init_pair(8, COLOR_BLUE, -1);
 	init_pair(9, COLOR_RED, -1);
-	
-	TREE_TYPE tipo = PREDIO;
 
-	RBTree tree = getBuildingTree();
 
 	Node root = RBTree_GetRoot(tree);
 
@@ -419,118 +588,129 @@ char* waitCommand(){
 
 	while(true){
 		int ch = getch();
-		if(ch == '\033' && getch() == '['){ //Comando de escape
-			switch(getch()){
-				case 'A': //up
-				{
-					int resp = processInputMovement(selected, 'A', isActive);
-					if(resp == -1){
-						Node actual = nodeList[0];
-						Node parent = RBTreeN_GetParent(tree, actual);
-						if(parent != NULL){
-							parent = RBTreeN_GetParent(tree, parent);
-							if(parent!= NULL){
-								loadTreeData(tree, parent, isActive, isRed, chaves, nodeList, tipo);
-								selected = 0;
-								for(int i = 0; i < 7; i++){
-									if(nodeList[i] == actual)
-										selected = i;
+		if(ch == '\033'){
+			if(getch() == '[')//Comando de escape
+				switch(getch()){
+					case 'A': //up
+					{
+						int resp = processInputMovement(selected, 'A', isActive);
+						if(resp == -1){
+							Node actual = nodeList[0];
+							Node parent = RBTreeN_GetParent(tree, actual);
+							if(parent != NULL){
+								parent = RBTreeN_GetParent(tree, parent);
+								if(parent!= NULL){
+									loadTreeData(tree, parent, isActive, isRed, chaves, nodeList, tipo);
+									selected = 0;
+									for(int i = 0; i < 7; i++){
+										if(nodeList[i] == actual)
+											selected = i;
+									}
 								}
 							}
+								
+						}else{
+							selected = resp;
 						}
-							
-					}else{
-						selected = resp;
+						break;
 					}
-					break;
-				}
-				case 'B': //down
-				{
-					int resp = processInputMovement(selected, 'B', isActive);
-					if(resp == -1){
-						loadTreeData(tree, nodeList[selected], isActive, isRed, chaves, nodeList, tipo);
-						selected = 0;
-					}else{
-						selected = resp;
+					case 'B': //down
+					{
+						int resp = processInputMovement(selected, 'B', isActive);
+						if(resp == -1){
+							loadTreeData(tree, nodeList[selected], isActive, isRed, chaves, nodeList, tipo);
+							selected = 0;
+						}else{
+							selected = resp;
+						}
+						break;
 					}
-					break;
+					case 'C': //right
+					{
+						selected = processInputMovement(selected, 'C', isActive);
+						break;
+					}
+					case 'D': //left
+					{
+						selected = processInputMovement(selected, 'D', isActive);
+						break;
+					}
 				}
-				case 'C': //right
-				{
-					selected = processInputMovement(selected, 'C', isActive);
-					break;
-				}
-				case 'D': //left
-				{
-					selected = processInputMovement(selected, 'D', isActive);
-					break;
-				}
-			}
-		}else if(ch == 27){
+			else
+				break;
+		}else if(ch == 'x' || ch == 'X'){
 			break;
-		}else if(ch == 10){
-			detailPopup(chaves[selected]);
+		}else if(ch == 10){ //Enter
+			detailPopup(tree, nodeList[selected], tipo);
+		}else if(ch == 'e' || ch == 'E'){
+			if(selected == 5 || selected == 6 || selected == 4 || selected == 3){
+				loadTreeData(tree, nodeList[selected], isActive, isRed, chaves, nodeList, tipo);
+				selected = 0;
+			}else{
+				selected = processInputMovement(selected, 'D', isActive);
+			}
+
+		}else if(ch == 'd' || ch == 'D'){
+			if(selected == 5 || selected == 6 || selected == 4 || selected == 3){
+				loadTreeData(tree, nodeList[selected], isActive, isRed, chaves, nodeList, tipo);
+				selected = 0;
+			}else{
+				selected = processInputMovement(selected, 'C', isActive);
+			}
+			
+		}else if(ch == 'p' || ch == 'p'){
+			int resp = processInputMovement(selected, 'A', isActive);
+			if(resp == -1){
+				Node actual = nodeList[0];
+				Node parent = RBTreeN_GetParent(tree, actual);
+				if(parent != NULL){
+					parent = RBTreeN_GetParent(tree, parent);
+					if(parent!= NULL){
+						loadTreeData(tree, parent, isActive, isRed, chaves, nodeList, tipo);
+						selected = 0;
+						for(int i = 0; i < 7; i++){
+							if(nodeList[i] == actual)
+								selected = i;
+						}
+					}
+				}
+					
+			}else{
+				selected = resp;
+			}
 		}
 
 		cleanTree(output);
 		renderTreeLine(output, isActive);
 		renderTree(coord, nodes, chaves, isRed, isActive, selected);
 	}
-/* 
+
 	for(int i = 0; i < 7; i++){
-		nodes[i] = newwin(altura, largura, coord[i].x, coord[i].y);
-		if(!isRed[i]){
-			wattron(nodes[i], COLOR_PAIR(8));
-		}else{
-			wattron(nodes[i], COLOR_PAIR(9));
-		}
-
-		if(i == selected)
-			wattron(nodes[i], A_STANDOUT);
-
-		box(nodes[i], 0, 0);
-		wrefresh(nodes[i]);
-		if(!isRed[i]){
-			wattroff(nodes[i], COLOR_PAIR(8));
-		}else{
-			wattroff(nodes[i], COLOR_PAIR(9));
-		}
-
-		char* str = chaves[i];
-		int strl = strlen(str);
-		if(strl < 10){
-			int x = (10-strl);
-			x = (x % 2 == 0 ? x/2 : x/2 + 1);
-
-			mvwprintw(nodes[i], 1, 1, "%s", "         ");
-			//Completa com espaço em branco 
-			//depois ele da repaint com o texto por cima
-			
-			mvwprintw(nodes[i], 1, x, "%s", str);
-		}else{
-			mvwprintw(nodes[i], 1, 1, "%.7s..", str);
-		}
-		wrefresh(nodes[i]);
-
-		if(i == selected)
-			wattroff(nodes[i], A_STANDOUT);
-
+		cleanDelete(nodes[i]);
 	}
- */
+	cleanDelete(output);
 
-
-	sleep(3000);
 	refresh();
-	return NULL;
 }
 
+void setResult(WINDOW* processamento, bool sucess){
+	for (int n = 2; n < 77; n++){
+		mvwaddch(processamento, 2, n, '#');
+		wrefresh(processamento);
+		refresh();
+    }
+	wattroff(processamento, COLOR_PAIR(5));
+	doneScreen(sucess, NULL);
+}
 
-
-void processCommand(char* str){
+void processCommand(char* buffer, Files *files, char *baseDir, char *entryFileName){
 	WINDOW* processamento = newwin(4, 79, 5, 1);
 	wattron(processamento, A_BOLD);
-	mvwprintw(processamento, 1, 1, "Executando o comando %.10s", str);
+	mvwprintw(processamento, 1, 1, "Executando o comando ");
 	wattroff(processamento, A_BOLD);
+	wattron(processamento, A_ITALIC);
+	mvwprintw(processamento, 1, 22, "%.50s", buffer);
+	wattroff(processamento, A_ITALIC);
 	box(processamento, 0, 0);
 	wrefresh(processamento);
 	refresh();
@@ -542,40 +722,65 @@ void processCommand(char* str){
 	refresh();
 	init_pair(5,  COLOR_GREEN, -1);
 	wattron(processamento, COLOR_PAIR(5));
-	for (int n = 2; n < 77; n++){
-		mvwaddch(processamento, 2, n, '#');
+	wrefresh(processamento);
 
-        usleep(100000 - (n*1000));
-		wrefresh(processamento);
-		refresh();
-    }
-	wattroff(processamento, COLOR_PAIR(5));
+
+	char comando[16];
+	sscanf(buffer, "%15s", comando);
+	if(strcmp(comando, "q") == 0){
+		char qryFileName[64];
+		sscanf(buffer + 2, "%63[^\n]", qryFileName);
+
+		if (!Files_OpenQueryFiles(files, baseDir, entryFileName, qryFileName)){
+			setResult(processamento, false);
+			return cleanDelete(processamento);
+		}
+		
+		processAndGenerateQuery(files);
+		setResult(processamento, true);
+		return cleanDelete(processamento);
+	}else if (strcmp(comando, "dmprbt") == 0) {
+		char t = '\0', arq[64] = "";
+		sscanf(buffer + 7, "%c %63[^\n]", &t, arq);
+
+		if (t == '\0') {
+			doneScreen(false, "Forneça um tipo!");
+			return cleanDelete(processamento);
+		}
+
+		if(!(t == 'q' || t == 'h' || t == 's' || t == 't' || t == 'p' || t == 'm')){
+			doneScreen(false, "Tipo inválido!");
+			return cleanDelete(processamento);
+		}
+
+		if (arq[0] == '\0') {
+			doneScreen(false, "Forneça um arquivo!");
+			return cleanDelete(processamento);
+		}
+
+		if (Query_Dmprbt(Files_GetOutputDir(files), t, arq))
+			setResult(processamento, true);
+			return cleanDelete(processamento);
+
+    }else if(strcmp(comando, "nav") == 0){
+		TREE_TYPE t = menuTipo();
+		navTree(t);
+	}
+
+	cleanDelete(processamento);
 
 }
 
-void loadInitial(){
-
-}
 
 void startGui(Files *files, char *baseDir, char *entryFileName) {
-
-	#ifndef __NCURSES_H
-		printf("A biblioteca não foi incluída");
-	#else
-
     WINDOW * mainwin;
-
-
-    /*  Initialize ncurses  */
 
     if ( (mainwin = initscr()) == NULL ) {
 	fprintf(stderr, "Error initialising ncurses.\n");
 	exit(EXIT_FAILURE);
     }
 
-
     start_color();                    
-
 	use_default_colors();
 	init_pair(16,  -1,     -1);
 	wbkgd(mainwin, COLOR_PAIR(16));
@@ -602,88 +807,14 @@ void startGui(Files *files, char *baseDir, char *entryFileName) {
 
 	char* str = waitCommand();
 	while(strcmp(str, "sai") != 0){
-		processCommand(str);
+		processCommand(str, files, baseDir, entryFileName);
+		free(str);
 		str = waitCommand();
 
 	}
 
-	delwin(mainwin);
+	cleanDelete(mainwin);
     endwin();
     refresh();
 
-	return 0;
-
-
-
-	 
-	
-
-    //int h, w;
-   	//getmaxyx(stdscr, h, w);
-    //printf(" %d %d %d %d\n", h, w, LINES, COLS);
-	//80 24
-
-
-    /*  Make sure we are able to do what we want. If
-	has_colors() returns FALSE, we cannot use colours.
-	COLOR_PAIRS is the maximum number of colour pairs
-	we can use. We use 13 in this program, so we check
-	to make sure we have enough available.   
-	            */
-/* 	sleep(1);
-    if ( has_colors() && COLOR_PAIRS >= 13 ) {	
-
-	int n = 1; */
-
-
-	/*  Initialize a bunch of colour pairs, where:
-
-	        init_pair(pair number, foreground, background);
-
-	    specifies the pair.                                  */
-
-	/* init_pair(1,  COLOR_RED,     COLOR_BLACK);
-	init_pair(2,  COLOR_GREEN,   COLOR_BLACK);
-	init_pair(3,  COLOR_YELLOW,  COLOR_BLACK);
-	init_pair(4,  COLOR_BLUE,    COLOR_BLACK);
-	init_pair(5,  COLOR_MAGENTA, COLOR_BLACK);
-	init_pair(6,  COLOR_CYAN,    COLOR_BLACK);
-	init_pair(7,  COLOR_BLUE,    COLOR_WHITE);
-	init_pair(8,  COLOR_WHITE,   COLOR_RED);
-	init_pair(9,  COLOR_BLACK,   COLOR_GREEN);
-	init_pair(10, COLOR_BLUE,    COLOR_YELLOW);
-	init_pair(11, COLOR_WHITE,   COLOR_BLUE);
-	init_pair(12, COLOR_WHITE,   COLOR_MAGENTA);
-	init_pair(13, COLOR_BLACK,   COLOR_CYAN); */
-
-
-	/*  Use them to print of bunch of "Hello, world!"s  */
-
-/* 	while ( n <= 13 ) {
-	    color_set(n, mainwin);
-	    mvaddstr(6 + n, 32, " Evandro é um imbecil");
-        wmove(mainwin, 6 + n, 32);
-        refresh();
-        usleep(150000);
-	    n++;
-	} */
-/*     }
- */
-
-    /*  Refresh the screen and sleep for a
-	while to get the full screen effect  */
-
-    refresh();
-    sleep(3000000);
-    
-
-    /*  Clean up after ourselves  */
-
-    delwin(mainwin);
-    endwin();
-    refresh();
-
-    return EXIT_SUCCESS;
-
-	#endif
 }

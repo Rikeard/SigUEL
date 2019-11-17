@@ -1,6 +1,6 @@
 CC = gcc
 # TODO: remover .g
-COMPILER_FLAGS = -std=c99 -fstack-protector-all -g
+COMPILER_FLAGS = -std=c99 -fstack-protector-all -g -D CURSES_ON
 LINKER_FLAGS = -lm -lncurses
 EXEC_NAME = siguel
 ODIR = obj
